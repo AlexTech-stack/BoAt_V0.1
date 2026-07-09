@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package boat.v1;
+
+message PaginationRequest {
+  uint32 page_size = 1;
+  string page_token = 2;
+}
+
+message PaginationResponse {
+  string next_page_token = 1;
+  uint32 total_size = 2;
+}
+
+message ErrorDetail {
+  string code = 1;
+  string message = 2;
+  map<string, string> metadata = 3;
+}
+
+enum SimulationState {
+  SIMULATION_STATE_UNSPECIFIED = 0;
+  SIMULATION_STATE_IDLE = 1;
+  SIMULATION_STATE_RUNNING = 2;
+  SIMULATION_STATE_PAUSED = 3;
+  SIMULATION_STATE_STOPPED = 4;
+  SIMULATION_STATE_ERROR = 5;
+}

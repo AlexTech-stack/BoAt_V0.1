@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package boat.v1;
+
+// ── RpcEvent ──────────────────────────────────────────────────────────────────
+
+message RpcEvent {
+  // Wall-clock nanoseconds since epoch.
+  uint64 timestamp_ns = 1;
+
+  // Full gRPC method path: "/boat.v1.CanService/SendCanFrame"
+  string method = 2;
+
+  // Client address as reported by gRPC: "ipv4:127.0.0.1:54321"
+  string peer = 3;
+
+  // One of: CALL_START | MSG_RECV | MSG_SEND | CALL_END
+  string event_type = 4;
+
+  // One of: UNARY | SERVER_STREAM | CLIENT_STREAM | BIDI_STREAM
+  string call_type = 5;
+
+  // Serialised message size in bytes (MSG_RECV / MSG_SEND only; 0 otherwise).
+  uint32 msg_bytes = 6;
+
+  // Total call duration µs (CALL_END only; 0 otherwise).
+  int64 duration_us = 7;
+
+  // gRPC status code integer (CALL_END only; 0 = OK).
+  int32 status_code = 8;
+
+  // Human-readable status message (CALL_END only when not OK).
+  string status_message = 9;
+
+  // One-line human-readable description of the message content.
+  // Set by service implementations for DATA events; empty for lifecycle events.
+  string summary = 10;
+}
+
+// ── DebugService ──────────────────────────────────────────────────────────────
+
+message StreamRpcEventsRequest {
+  // Optional filter: only events whose method path contains this substring.
+  // Empty = all methods.
+  string method_filter = 1;
+}
+
+service DebugService {
+  // Subscribe to a live stream of all RPC events observed by the gateway.
+  rpc StreamEvents(StreamRpcEventsRequest) returns (stream RpcEvent);
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package boat.v1;
+
+/* A named, typed value published on the always-on node signal bus.
+   Independent of simulation lifecycle — nodes can exchange signals
+   at any time regardless of whether a simulation is running. */
+message BusSignal {
+  string name         = 1;  // signal name, e.g. "vehicle.speed"
+  uint64 timestamp_ns = 2;  // gateway wall-clock time at receipt (ns)
+  string publisher    = 3;  // optional node identifier
+
+  oneof value {
+    double number_value = 4;
+    string string_value = 5;
+    bool   bool_value   = 6;
+    bytes  bytes_value  = 7;
+  }
+}
+
+message BusPublishRequest  { BusSignal signal = 1; }
+message BusPublishResponse { bool accepted = 1; }
+
+message BusSubscribeRequest {
+  repeated string names = 1;  // empty = subscribe to all signals
+}
+
+service BusService {
+  rpc Publish(BusPublishRequest)     returns (BusPublishResponse);
+  rpc Subscribe(BusSubscribeRequest) returns (stream BusSignal);
+}

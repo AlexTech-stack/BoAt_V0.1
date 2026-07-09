@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/common.proto";
+
+// ── Read RPCs ───────────────────────────────────────────────────────────────
+
+message GetTraceRequest { string trace_id = 1; }
+message ListTracesRequest { PaginationRequest page = 1; }
+message StreamTraceRequest { string trace_id = 1; }
+
+message TraceEvent {
+  string trace_id = 1;
+  uint64 tick = 2;
+  string category = 3;
+  string payload = 4;
+}
+
+message TraceResponse { repeated TraceEvent events = 1; PaginationResponse page = 2; }
+
+// ── MarkStep RPC ────────────────────────────────────────────────────────────
+
+message MarkStepRequest {
+  string trace_id = 1;
+  uint32 step_id = 2;
+  string step_name = 3;
+  uint64 sim_tick = 4;
+  map<string, string> metadata = 5;
+}
+
+message MarkStepResponse {
+  uint64 marker_timestamp_ns = 1;
+}
+
+service TraceService {
+  rpc GetTrace(GetTraceRequest) returns (TraceResponse);
+  rpc ListTraces(ListTracesRequest) returns (TraceResponse);
+  rpc StreamTrace(StreamTraceRequest) returns (stream TraceEvent);
+  rpc MarkStep(MarkStepRequest) returns (MarkStepResponse);
+}

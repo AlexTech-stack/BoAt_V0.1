@@ -1,0 +1,5 @@
+add_subdirectory(can_tp)
+add_subdirectory(pdu_router)
+add_subdirectory(someip)
+add_subdirectory(tcp)
+add_subdirectory(probe)

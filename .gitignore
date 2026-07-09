@@ -1,0 +1,25 @@
+# Build output
+boat-platform/build/
+
+# Python
+**/__pycache__/
+.claude/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# SQLite databases (runtime data)
+*.db
+*.db-shm
+*.db-wal
+
+# Recorded trace files (runtime data)
+boat-platform/traces/
+boat-platform/demo/traces/
+
+# Runtime state files
+.last_import
+
+# Local specification references (gitignored — symlink or copy your specs here)
+spec/

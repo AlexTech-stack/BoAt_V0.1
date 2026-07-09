@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/common.proto";
+
+message Plugin {
+  string plugin_id = 1;
+  string name = 2;
+  string version = 3;
+  bool loaded = 4;
+}
+
+message RegisterPluginRequest { string path = 1; string config_json = 2; }
+message ListPluginsRequest { PaginationRequest page = 1; }
+message GetPluginInfoRequest { string plugin_id = 1; }
+message UnloadPluginRequest { string plugin_id = 1; }
+
+message PluginResponse { Plugin plugin = 1; ErrorDetail error = 2; }
+message ListPluginsResponse { repeated Plugin plugins = 1; PaginationResponse page = 2; }
+message UnloadPluginResponse { bool unloaded = 1; ErrorDetail error = 2; }
+
+service PluginService {
+  rpc RegisterPlugin(RegisterPluginRequest) returns (PluginResponse);
+  rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse);
+  rpc GetPluginInfo(GetPluginInfoRequest) returns (PluginResponse);
+  rpc UnloadPlugin(UnloadPluginRequest) returns (UnloadPluginResponse);
+}

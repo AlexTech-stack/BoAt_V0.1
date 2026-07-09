@@ -1,0 +1,10 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/boat
+COPY build/release/src/gateway/grpc_gateway/boat_gateway /usr/local/bin/boat_gateway
+
+ENTRYPOINT ["/usr/local/bin/boat_gateway"]

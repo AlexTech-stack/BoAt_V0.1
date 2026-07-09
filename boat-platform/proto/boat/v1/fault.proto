@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/common.proto";
+
+enum FaultType {
+  FAULT_TYPE_UNSPECIFIED = 0;
+  FAULT_TYPE_SIGNAL_CORRUPTION = 1;
+  FAULT_TYPE_PACKET_DROP = 2;
+  FAULT_TYPE_DELAY = 3;
+}
+
+message InjectFaultRequest {
+  string simulation_id = 1;
+  string target = 2;
+  FaultType type = 3;
+  uint64 tick = 4;
+}
+
+message ListFaultsRequest { string simulation_id = 1; PaginationRequest page = 2; }
+
+message FaultEvent {
+  string fault_id = 1;
+  string simulation_id = 2;
+  string target = 3;
+  FaultType type = 4;
+  uint64 tick = 5;
+}
+
+message InjectFaultResponse { FaultEvent fault = 1; ErrorDetail error = 2; }
+message ListFaultsResponse { repeated FaultEvent faults = 1; PaginationResponse page = 2; }
+
+service FaultService {
+  rpc InjectFault(InjectFaultRequest) returns (InjectFaultResponse);
+  rpc ListFaults(ListFaultsRequest) returns (ListFaultsResponse);
+}

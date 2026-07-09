@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "name": "hybrid-hil-01",
+  "description": "Two physical CAN buses and one virtual Ethernet interface.",
+  "gateway": {
+    "binary": "./build/debug/src/gateway/grpc_gateway/boat_gateway",
+    "tick_ms": 10,
+    "address": "localhost:50051"
+  },
+  "buses": {
+    "can1": { "type": "physical", "interface": "can0", "bitrate": 500000 },
+    "can2": { "type": "physical", "interface": "can1", "bitrate": 500000, "fd": true },
+    "eth0": {
+      "type": "virtual_eth",
+      "interface": "veth0",
+      "multicast_group": "239.255.0.1",
+      "port": 51000
+    }
+  },
+  "dut": {
+    "name": "ecu-42",
+    "type": "physical"
+  },
+  "plugins": []
+}

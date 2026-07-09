@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoAt Platform — Documentation</title>
+<style>
+  :root {
+    --bg:       #0f1117;
+    --surface:  #181c27;
+    --border:   #2a2f3f;
+    --accent:   #4f9cf9;
+    --accent2:  #7dd3fc;
+    --green:    #4ade80;
+    --yellow:   #fbbf24;
+    --red:      #f87171;
+    --text:     #e2e8f0;
+    --muted:    #94a3b8;
+    --code-bg:  #0d1117;
+    --nav-w:    260px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+  }
+
+  /* ── Navigation ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: var(--nav-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 1.5rem 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    padding: 0 1.25rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  .nav-logo .brand {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .nav-logo .sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  nav ul { list-style: none; padding: 0 0.5rem; }
+  nav ul li a {
+    display: block;
+    padding: 0.3rem 0.75rem;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+  }
+  nav ul li a:hover { background: var(--border); color: var(--text); }
+  nav ul li.section-head > a {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    cursor: default;
+    pointer-events: none;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+  }
+  nav ul li.active > a { background: rgba(79,156,249,0.15); color: var(--accent); }
+
+  /* ── Main Content ── */
+  main {
+    margin-left: var(--nav-w);
+    flex: 1;
+    max-width: 960px;
+    padding: 3rem 3rem 6rem;
+  }
+  @media (max-width: 800px) {
+    nav { display: none; }
+    main { margin-left: 0; padding: 1.5rem; }
+  }
+
+  /* ── Headings ── */
+  h1 { font-size: 2.2rem; font-weight: 800; color: var(--text); line-height: 1.2; margin-bottom: 0.5rem; }
+  h2 { font-size: 1.55rem; font-weight: 700; color: var(--text); margin: 2.8rem 0 0.8rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  h3 { font-size: 1.15rem; font-weight: 600; color: var(--accent2); margin: 2rem 0 0.6rem; }
+  h4 { font-size: 0.95rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 1.5rem 0 0.4rem; }
+
+  /* ── Intro block ── */
+  .hero {
+    background: linear-gradient(135deg, #1a2744 0%, #121827 100%);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+  }
+  .hero .tagline { color: var(--muted); font-size: 1.05rem; margin-top: 0.5rem; }
+  .badge-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.25rem; }
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .badge.blue   { background: rgba(79,156,249,0.15);  color: var(--accent); border: 1px solid rgba(79,156,249,0.3); }
+  .badge.green  { background: rgba(74,222,128,0.12);  color: var(--green);  border: 1px solid rgba(74,222,128,0.3); }
+  .badge.yellow { background: rgba(251,191,36,0.12);  color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+
+  /* ── Callouts ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(79,156,249,0.07);
+    border-radius: 0 6px 6px 0;
+    padding: 0.8rem 1.1rem;
+    margin: 1.25rem 0;
+    font-size: 0.9rem;
+  }
+  .callout.warn  { border-color: var(--yellow); background: rgba(251,191,36,0.07); }
+  .callout.tip   { border-color: var(--green);  background: rgba(74,222,128,0.07); }
+  .callout strong { display: block; margin-bottom: 0.2rem; }
+
+  /* ── Code ── */
+  code {
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    color: #a5d6ff;
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.3rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    line-height: 1.6;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.84rem;
+    color: #e2e8f0;
+  }
+  .kw  { color: #c792ea; }
+  .cm  { color: #546e7a; font-style: italic; }
+  .st  { color: #c3e88d; }
+  .nm  { color: #82aaff; }
+  .cn  { color: #ffcb6b; }
+  .op  { color: #89ddff; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+    margin: 1rem 0;
+  }
+  th {
+    background: var(--surface);
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  td code { font-size: 0.78em; }
+
+  /* ── Method blocks ── */
+  .method-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+  }
+  .method-sig {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.84rem;
+    color: var(--accent2);
+    margin-bottom: 0.4rem;
+  }
+  .method-desc { color: var(--muted); font-size: 0.88rem; }
+
+  /* ── Step list ── */
+  .steps { counter-reset: step; list-style: none; padding: 0; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 1rem;
+    margin: 0.75rem 0;
+    align-items: flex-start;
+  }
+  .steps li::before {
+    content: counter(step);
+    min-width: 1.75rem;
+    height: 1.75rem;
+    background: rgba(79,156,249,0.15);
+    border: 1px solid rgba(79,156,249,0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .steps li .step-body { flex: 1; }
+
+  /* ── Tag chips ── */
+  .tag { font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 3px; margin-left: 0.3rem; vertical-align: middle; }
+  .tag.req  { background: rgba(248,113,113,0.2); color: var(--red); }
+  .tag.opt  { background: rgba(148,163,184,0.15); color: var(--muted); }
+  .tag.def  { background: rgba(74,222,128,0.12); color: var(--green); }
+
+  p { margin: 0.6rem 0; }
+  ul, ol { padding-left: 1.4rem; margin: 0.6rem 0; }
+  li { margin: 0.25rem 0; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── FAQ ── */
+  details {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 0.6rem 0;
+  }
+  summary {
+    cursor: pointer;
+    padding: 0.8rem 1rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+  }
+  summary::before {
+    content: "▶";
+    font-size: 0.7rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+  details[open] summary::before { transform: rotate(90deg); }
+  details .faq-body {
+    padding: 0 1rem 1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.8rem;
+    margin-top: 0;
+  }
+  details .faq-body p { color: var(--text); }
+  details .faq-body code { font-size: 0.8em; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════  NAVIGATION  ════════════════════ -->
+<nav>
+  <div class="nav-logo">
+    <div class="brand">BoAt Platform</div>
+    <div class="sub">Documentation v1.0</div>
+  </div>
+  <ul>
+    <li class="section-head"><a href="#">Overview</a></li>
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#quickstart">Quick Start</a></li>
+
+    <li class="section-head"><a href="#">Gateway</a></li>
+    <li><a href="#gateway-start">Starting the Gateway</a></li>
+    <li><a href="#gateway-env">Environment Variables</a></li>
+    <li><a href="#gateway-eth">Physical Ethernet</a></li>
+
+    <li class="section-head"><a href="#">CLI Reference</a></li>
+    <li><a href="#cli-global">Global Options</a></li>
+    <li><a href="#cli-frame">boat frame</a></li>
+    <li><a href="#cli-can-tp">boat can-tp</a></li>
+    <li><a href="#cli-pdu">boat pdu</a></li>
+    <li><a href="#cli-db">boat db</a></li>
+    <li><a href="#cli-sim">boat sim</a></li>
+    <li><a href="#cli-scenario">boat scenario</a></li>
+    <li><a href="#cli-trace">boat trace</a></li>
+    <li><a href="#cli-plugin">boat plugin</a></li>
+    <li><a href="#cli-gen">boat gen</a></li>
+    <li><a href="#cli-completion">Shell Completion</a></li>
+
+    <li class="section-head"><a href="#">Python SDK</a></li>
+    <li><a href="#sdk-client">BoAtClient</a></li>
+    <li><a href="#sdk-pdunode">PduNode</a></li>
+    <li><a href="#sdk-cannode">CanNode</a></li>
+    <li><a href="#sdk-ethnode">EthernetNode</a></li>
+    <li><a href="#sdk-busnode">BusNode</a></li>
+    <li><a href="#sdk-message">Message</a></li>
+    <li><a href="#sdk-pdudb">PduDatabase</a></li>
+
+    <li class="section-head"><a href="#">PDU Database</a></li>
+    <li><a href="#pdudb-schema">Schema Reference</a></li>
+    <li><a href="#pdudb-example">Example</a></li>
+    <li><a href="#ipdumformat">IpduM Container Format</a></li>
+
+    <li class="section-head"><a href="#">Testing</a></li>
+    <li><a href="testing/test-howto.html">Test Framework How-To</a></li>
+    <li><a href="testing/test-strategy.md">Test Strategy</a></li>
+    <li><a href="testing/test-plan.md">Test Plan</a></li>
+
+    <li class="section-head"><a href="#">How-Tos</a></li>
+    <li><a href="#howto-can">Send a CAN Frame</a></li>
+    <li><a href="#howto-pdu">Send a PDU over IP</a></li>
+    <li><a href="#howto-container">IpduM Container</a></li>
+    <li><a href="#howto-subscribe">Subscribe to Frames</a></li>
+    <li><a href="#howto-pdu-features">PDU Features</a></li>
+    <li><a href="#howto-hweth">Physical Ethernet</a></li>
+    <li><a href="#howto-signals">Signal Routing</a></li>
+    <li><a href="#howto-trace">Record a Trace</a></li>
+
+    <li class="section-head"><a href="#">Reference</a></li>
+    <li><a href="#grpc-services">gRPC Services</a></li>
+    <li><a href="#signal-packing">Signal Packing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+</nav>
+
+<!-- ════════════════════  CONTENT  ════════════════════ -->
+<main>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <h1>BoAt Platform</h1>
+  <p class="tagline">Automotive SIL/HIL simulation &amp; testing — CAN, CAN FD, and Ethernet on one gRPC gateway.</p>
+  <div class="badge-row">
+    <span class="badge blue">gRPC / Protobuf</span>
+    <span class="badge green">CAN · CAN FD · Ethernet</span>
+    <span class="badge yellow">AUTOSAR PDU / IpduM</span>
+    <span class="badge blue">Python SDK</span>
+    <span class="badge green">Physical HIL</span>
+  </div>
+</div>
+
+<!-- ═══ INTRODUCTION ═══ -->
+<h2 id="intro">Introduction</h2>
+<p>
+  BoAt (<strong>Bo</strong>ard <strong>A</strong>utomotive <strong>T</strong>esting) is an open platform for
+  simulating and testing automotive ECU networks. A single C++ gateway process exposes
+  every bus as a gRPC service — virtual or physical — so you can send frames, subscribe to
+  live data, inject faults, replay traces and orchestrate full simulation scenarios from
+  any language that has a gRPC client.
+</p>
+<p>Key capabilities:</p>
+<ul>
+  <li><strong>CAN &amp; CAN FD</strong> — send and receive frames on virtual (SocketCAN) or physical interfaces.</li>
+  <li><strong>Ethernet</strong> — virtual multicast buses and physical NICs via raw AF_PACKET sockets.</li>
+  <li><strong>AUTOSAR PDU routing</strong> — per-PDU routes over CAN or Ethernet (IP/UDP/IpduM containers).</li>
+  <li><strong>Signal-level routing</strong> — cross-bus signal mappings defined in a JSON database.</li>
+  <li><strong>Simulation lifecycle</strong> — tick-based state machine (create → start → pause → step → reset).</li>
+  <li><strong>Trace &amp; replay</strong> — record to .asc/.blf/.pcap, replay deterministically.</li>
+  <li><strong>Fault injection</strong> — signal corruption, packet drops, latency injection.</li>
+  <li><strong>Plugin system</strong> — dynamically loaded .so plugins with frame/signal callbacks.</li>
+  <li><strong>AI code generation</strong> — generate plugin stubs from plain-language descriptions.</li>
+</ul>
+
+<!-- ═══ ARCHITECTURE ═══ -->
+<h2 id="architecture">Architecture</h2>
+<pre><code>
+  ┌─────────────────────────────────────────────────────┐
+  │              BoAt Gateway  (:50051 gRPC)             │
+  │                                                     │
+  │  FrameService  CanService  PduService  ...          │
+  │       │                                             │
+  │  FrameSink ──────────── single frame→wire sink      │
+  │       │            ▲                                 │
+  │  CanBusRegistry  EthernetBusRegistry ── DispatchRx ─┐│
+  │       │            │                                ▼│
+  │  [vcan0] [vcan1]  [veth0] [raw:enxABC]   plugins    ││
+  │                                  [ pdu_router can_tp ││
+  │                                    tcp  someip ]  on_frame
+  └─────────────────────────────────────────────────────┘
+         ▲                      ▲
+         │ gRPC                 │ gRPC
+  ┌──────┴─────┐        ┌───────┴──────┐
+  │ boat CLI   │        │ Python SDK   │
+  │ (Typer)    │        │ BoAtClient   │
+  └────────────┘        └──────────────┘
+</code></pre>
+
+<p>
+  The gateway is the only process you need to run. All bus drivers live inside it.
+  Clients — CLI, Python nodes, or any gRPC client — connect on TCP port <code>50051</code>.
+</p>
+
+<p>
+  <strong>ABI v8:</strong> the core owns the stateless transport substrate — the single
+  <code>FrameSink</code> is the only path a frame reaches a bus, and every producer
+  (plugins, replay, <code>FrameService.SendFrame</code>) transmits through it. Inbound frames
+  are dispatched to plugins' <code>on_frame</code>, filtered to the bus types each plugin
+  declares. Plugins own stateful conversations only (TCP, ISO-TP, PDU routing, SOME/IP);
+  even PDU routing is a plugin (<code>pdu_router.so</code>) rather than gateway-core logic.
+</p>
+
+<h3>Bus Registries</h3>
+<table>
+  <tr><th>Registry</th><th>Driver types</th><th>Notes</th></tr>
+  <tr><td>CanBusRegistry</td><td>VirtualCanDriver (SocketCAN)</td><td>SocketCAN vcan/can interfaces</td></tr>
+  <tr><td>EthernetBusRegistry</td><td>VirtualEthernetDriver (multicast UDP), RawSocketEthernetDriver (AF_PACKET)</td><td>Virtual or physical NIC</td></tr>
+</table>
+
+<h3>PDU Router (plugin)</h3>
+<p>
+  As of ABI v8 the <code>PduRouter</code> is a runtime plugin (<code>pdu_router.so</code>), not
+  gateway-core logic. It registers itself as the <code>IPduRouter</code> service, and
+  <code>PduServiceImpl</code> delegates to it via <code>FindService("pdu_router")</code>. It maps
+  32-bit PDU IDs to physical transports; routes are added at runtime via <code>ConfigureRoute</code>.
+  When a PDU is sent, the router looks up the route and forwards it as a CAN frame or an Ethernet
+  UDP/IpduM datagram (published through <code>set_frame_publisher</code>). Incoming frames are parsed
+  back to PDU frames and delivered to all active <code>SubscribePdus</code> streams.
+</p>
+
+<!-- ═══ QUICK START ═══ -->
+<h2 id="quickstart">Quick Start</h2>
+<ol class="steps">
+  <li>
+    <div class="step-body">
+      <strong>Build the gateway</strong>
+<pre><code>cd boat-platform
+cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/debug -j$(nproc)</code></pre>
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Start the gateway</strong> (virtual buses)
+<pre><code><span class="cm"># Create virtual CAN interfaces if not already present</span>
+sudo modprobe vcan
+sudo ip link add vcan0 type vcan &amp;&amp; sudo ip link set vcan0 up
+
+<span class="cm"># Start with vcan0 and a virtual Ethernet interface</span>
+BOAT_CAN_INTERFACES=vcan0 \
+BOAT_ETH_INTERFACES=veth0 \
+./build/debug/src/gateway/grpc_gateway/boat_gateway</code></pre>
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Install the CLI</strong>
+<pre><code>pip install -e cli/</code></pre>
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Send your first CAN frame</strong>
+<pre><code>boat frame send --bus-type can --can-id 0x7B --data DEADBEEF --iface vcan0</code></pre>
+    </div>
+  </li>
+</ol>
+
+<!-- ═══ GATEWAY ═══ -->
+<h2 id="gateway-start">Starting the Gateway</h2>
+<p>The gateway binary is at <code>build/debug/src/gateway/grpc_gateway/boat_gateway</code> after a successful build. All configuration is done via environment variables.</p>
+
+<pre><code><span class="cm"># Minimal: one virtual CAN interface</span>
+BOAT_CAN_INTERFACES=vcan0 ./boat_gateway
+
+<span class="cm"># With multiple CAN and Ethernet interfaces</span>
+BOAT_CAN_INTERFACES=vcan0,vcan1 \
+BOAT_ETH_INTERFACES=veth0,veth1 \
+./boat_gateway
+
+<span class="cm"># With physical USB Ethernet adapters (after granting CAP_NET_RAW, see below)</span>
+BOAT_CAN_INTERFACES=vcan0 \
+BOAT_ETH_INTERFACES=raw:enx28107b9f2016,raw:enx28107b9f2017 \
+./boat_gateway</code></pre>
+
+<div class="callout warn">
+  <strong>Permissions</strong>
+  Physical Ethernet via <code>raw:</code> requires <code>CAP_NET_RAW</code>. Grant the capability to the
+  binary rather than running the gateway as root:
+  <code>sudo setcap cap_net_raw+ep ./boat_gateway</code>. Root-owned files (e.g. under <code>/tmp</code>)
+  left behind by a <code>sudo</code>-run gateway can block later non-root runs from writing to the same
+  paths, so prefer <code>setcap</code>. Reapply it after every rebuild — the capability is stored on the
+  binary's inode.
+</div>
+
+<h2 id="gateway-env">Environment Variables</h2>
+<table>
+  <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+  <tr>
+    <td><code>BOAT_CAN_INTERFACES</code></td>
+    <td><code>vcan0</code></td>
+    <td>Comma-separated CAN interface names. Each must exist as a SocketCAN interface on the host. Example: <code>vcan0,vcan1,can0</code></td>
+  </tr>
+  <tr>
+    <td><code>BOAT_ETH_INTERFACES</code></td>
+    <td>(none)</td>
+    <td>
+      Comma-separated Ethernet entries. Two forms:<br>
+      <code>name</code> — virtual multicast driver (auto-assigned port)<br>
+      <code>raw:name</code> — physical NIC via AF_PACKET (requires CAP_NET_RAW)<br>
+      Example: <code>veth0,raw:enx28107b9f2016</code>
+    </td>
+  </tr>
+  <tr>
+    <td><code>BOAT_NODE_PLUGINS</code></td>
+    <td>(none)</td>
+    <td>Comma-separated paths to always-on plugin .so files loaded at startup.</td>
+  </tr>
+  <tr>
+    <td><code>BOAT_NODE_TICK_MS</code></td>
+    <td><code>10</code></td>
+    <td>Node tick interval in milliseconds. Minimum achievable PDU cycle time. Lower = more precise cycles, higher CPU. Uses <code>sleep_for</code> backend.</td>
+  </tr>
+  <tr>
+    <td><code>BOAT_NODE_TICK_US</code></td>
+    <td>(none)</td>
+    <td>Node tick interval in microseconds. Overrides <code>BOAT_NODE_TICK_MS</code>&nbsp;when set. Uses high-precision timerfd backend (Linux only). Example: <code>100</code> for 100&nbsp;μs ticks.</td>
+  </tr>
+  <tr>
+    <td><code>BOAT_AI_API_KEY</code></td>
+    <td>(none)</td>
+    <td>Bearer token for LLM endpoints used by <code>boat gen plugin</code>.</td>
+  </tr>
+</table>
+
+<h2 id="gateway-eth">Physical Ethernet (Raw Socket)</h2>
+<p>
+  When a name is prefixed with <code>raw:</code> in <code>BOAT_ETH_INTERFACES</code>, the gateway opens
+  an <code>AF_PACKET / SOCK_RAW</code> socket and binds it to that NIC. This gives the gateway
+  direct L2 access — no IP stack involvement.
+</p>
+
+<div class="callout tip">
+  <strong>USB Ethernet adapters</strong>
+  Two USB adapters work well for loopback testing. Assign static IPs before starting the gateway:
+<pre><code>sudo ip addr add 50.50.0.1/24 dev enx28107b9f2016
+sudo ip addr add 50.50.0.2/24 dev enx28107b9f2017
+sudo ip link set enx28107b9f2016 up
+sudo ip link set enx28107b9f2017 up
+sudo setcap cap_net_raw+ep ./boat_gateway</code></pre>
+  Then start with: <code>BOAT_ETH_INTERFACES=raw:enx28107b9f2016,raw:enx28107b9f2017 ./boat_gateway</code>
+</div>
+
+<p>
+  Static IPs set via <code>ip addr add</code> are not persistent across reboots. To persist them, add
+  entries to your network manager or <code>/etc/network/interfaces</code>.
+</p>
+
+<p>
+  Gateway startup log confirms successful registration:
+</p>
+<pre><code>[Gateway] Registered raw Ethernet interface 'enx28107b9f2016'
+[Gateway] Registered raw Ethernet interface 'enx28107b9f2017'</code></pre>
+<p>If you see <em>Failed to open</em> instead, check permissions and that the interface exists.</p>
+
+<!-- ═══ CLI REFERENCE ═══ -->
+<h2 id="cli-global">CLI — Global Options</h2>
+<p>Every <code>boat</code> command accepts these options before the subcommand name:</p>
+<table>
+  <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>--host</code></td><td><code>localhost:50051</code></td><td>Gateway gRPC address</td></tr>
+  <tr><td><code>--json</code></td><td>off</td><td>Output results as JSON (useful for scripting)</td></tr>
+  <tr><td><code>--help</code></td><td></td><td>Show help for any command</td></tr>
+</table>
+<pre><code><span class="cm"># Connect to a remote gateway</span>
+boat --host 192.168.1.10:50051 pdu list-routes
+
+<span class="cm"># Machine-readable JSON output</span>
+boat --json can list-buses</code></pre>
+
+<!-- ═══ CLI FRAME ═══ -->
+<h2 id="cli-frame">CLI — <code>boat frame</code></h2>
+<p>
+  Unified send/subscribe/list for CAN, CAN FD, Ethernet, TCP, and PDU frames via
+  <code>FrameService</code>. This replaced the old <code>boat can</code> / <code>boat eth</code>
+  commands.
+</p>
+
+<h3>boat frame list-ifaces</h3>
+<p>Lists all CAN and Ethernet interfaces the gateway has access to, with metadata.</p>
+<pre><code>boat frame list-ifaces</code></pre>
+
+<h3>boat frame send</h3>
+<table>
+  <tr><th>Option</th><th>Tag</th><th>Description</th></tr>
+  <tr><td><code>--bus-type &lt;type&gt;</code></td><td><span class="tag req">req</span></td><td><code>CAN</code>, <code>CANFD</code>, <code>ETHERNET</code>, <code>TCP</code>, or <code>PDU</code></td></tr>
+  <tr><td><code>--data &lt;hex&gt;</code></td><td><span class="tag req">req</span></td><td>Payload bytes as hex (e.g., <code>DEADBEEF</code>)</td></tr>
+  <tr><td><code>--iface &lt;name&gt;</code></td><td><span class="tag opt">opt</span></td><td>Interface name. Auto-selected from the gateway's first registered bus of that type if omitted.</td></tr>
+  <tr><td><code>--can-id &lt;hex|dec&gt;</code></td><td><span class="tag def">0</span></td><td>CAN identifier (CAN/CANFD only)</td></tr>
+  <tr><td><code>--ethertype &lt;hex|dec&gt;</code></td><td><span class="tag def">0</span></td><td>Ethernet EtherType (Ethernet only)</td></tr>
+  <tr><td><code>--src-mac</code> / <code>--dst-mac</code></td><td><span class="tag opt">opt</span></td><td>MAC addresses (Ethernet only)</td></tr>
+  <tr><td><code>--src-ip</code> / <code>--dst-ip</code></td><td><span class="tag opt">opt</span></td><td>IPv4 addresses (Ethernet/TCP)</td></tr>
+  <tr><td><code>--src-port</code> / <code>--dst-port</code></td><td><span class="tag def">0</span></td><td>TCP/UDP ports</td></tr>
+  <tr><td><code>--pdu-id &lt;hex|dec&gt;</code></td><td><span class="tag def">0</span></td><td>PDU identifier (PDU only)</td></tr>
+</table>
+
+<pre><code><span class="cm"># Raw CAN frame</span>
+boat frame send --bus-type can --can-id 0x7B --data DEADBEEF --iface vcan0
+
+<span class="cm"># CAN FD frame</span>
+boat frame send --bus-type canfd --can-id 0x100 --data 0102030405060708 --iface vcan0
+
+<span class="cm"># Raw Ethernet frame</span>
+boat frame send --bus-type ethernet --iface veth0 --data DEADBEEF --ethertype 0x88B5</code></pre>
+
+<div class="callout">
+  <strong>PDU-database-driven sends</strong> (<code>--msg</code>/<code>--sig</code>/<code>--db</code>, signal packing)
+  are not part of <code>boat frame send</code>. Use <code>python3 -m boat can send --msg &lt;name&gt; --sig Name=value --db &lt;path&gt;</code>
+  (or <code>python3 -m boat eth send</code>) instead — a separate one-shot dispatcher in <code>boat/cmd.py</code>,
+  reached via <code>python3 -m boat</code> rather than the <code>boat</code> console script.
+</div>
+
+<h3>boat frame subscribe</h3>
+<table>
+  <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>--bus-types &lt;list&gt;</code></td><td>all</td><td>Comma-separated: <code>CAN,CANFD,ETHERNET,TCP,PDU</code></td></tr>
+  <tr><td><code>--iface &lt;name&gt;</code></td><td>all</td><td>Filter to a specific interface</td></tr>
+</table>
+<pre><code><span class="cm"># Watch all CAN traffic on vcan0</span>
+boat frame subscribe --bus-types can --iface vcan0
+
+<span class="cm"># Watch all traffic on all buses</span>
+boat frame subscribe</code></pre>
+
+<!-- ═══ CLI CAN-TP ═══ -->
+<h2 id="cli-can-tp">CLI — <code>boat can-tp</code></h2>
+<p>CAN Transport Protocol (ISO 15765-2) — segments large PDUs across multiple CAN frames
+with Flow Control (BS/STmin) support. Requires the <code>can_tp.so</code> node plugin to be
+loaded in the gateway.</p>
+
+<h3>boat can-tp configure</h3>
+<p>Configure an N-SDU session between two CAN IDs (source = this node, target = peer).
+Both <code>--source-addr</code> and <code>--target-addr</code> default to <code>--nsdu-id</code> for
+single-ID backward compatibility.</p>
+<table>
+  <tr><th>Option</th><th>Tag</th><th>Description</th></tr>
+  <tr><td><code>--nsdu-id &lt;hex|dec&gt;</code></td><td><span class="tag req">req</span></td><td>Logical session identifier</td></tr>
+  <tr><td><code>--source-addr &lt;hex|dec&gt;</code></td><td><span class="tag opt">opt</span></td><td>CAN ID of this node (default: nsdu_id)</td></tr>
+  <tr><td><code>--target-addr &lt;hex|dec&gt;</code></td><td><span class="tag opt">opt</span></td><td>CAN ID of the peer node (default: nsdu_id)</td></tr>
+  <tr><td><code>--bs &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>Block Size to advertise in Flow Control (0 = unlimited)</td></tr>
+  <tr><td><code>--stmin &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>Separation Time in ms to advertise in FC (0–127)</td></tr>
+  <tr><td><code>--dlc &lt;N&gt;</code></td><td><span class="tag def">8</span></td><td>CAN DLC: 8 for classic CAN, 64 for CAN FD</td></tr>
+  <tr><td><code>--rx-buffer &lt;N&gt;</code></td><td><span class="tag def">4095</span></td><td>RX reassembly buffer size</td></tr>
+</table>
+<pre><code><span class="cm"># Dual-ID session: tester (0x7E0) → ECU (0x7E8)</span>
+boat can-tp configure --nsdu-id diag --source-addr 0x7E0 --target-addr 0x7E8 --bs 0 --stmin 0
+
+<span class="cm"># Single-ID (backward compat)</span>
+boat can-tp configure --nsdu-id 0x7E0</code></pre>
+
+<h3>boat can-tp send</h3>
+<table>
+  <tr><th>Option</th><th>Tag</th><th>Description</th></tr>
+  <tr><td><code>--nsdu-id &lt;hex|dec&gt;</code></td><td><span class="tag req">req</span></td><td>N-SDU ID of the previously configured session</td></tr>
+  <tr><td><code>--data &lt;hex&gt;</code></td><td><span class="tag req">req</span></td><td>Payload hex bytes (will be segmented)</td></tr>
+  <tr><td><code>--source-addr &lt;hex|dec&gt;</code></td><td><span class="tag opt">opt</span></td><td>Override source CAN ID for this send</td></tr>
+  <tr><td><code>--target-addr &lt;hex|dec&gt;</code></td><td><span class="tag opt">opt</span></td><td>Override target CAN ID for this send</td></tr>
+  <tr><td><code>--bs &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>Block Size for the session (0 = unlimited)</td></tr>
+  <tr><td><code>--stmin &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>Separation Time in ms</td></tr>
+  <tr><td><code>--dlc &lt;N&gt;</code></td><td><span class="tag def">8</span></td><td>CAN DLC: 8 for classic CAN, 64 for CAN FD</td></tr>
+</table>
+<pre><code><span class="cm"># Send 255 bytes via CanTp segmentation (dual-ID)</span>
+boat can-tp send --nsdu-id diag --source-addr 0x7E0 --target-addr 0x7E8 \
+  --data 0123456789ABCDEF...
+
+<span class="cm"># CAN FD mode</span>
+boat can-tp send --nsdu-id 0x7E0 --dlc 64 --data ...
+</code></pre>
+
+<div class="callout">
+  <strong>Plugin required</strong>
+  Start the gateway with <code>BOAT_NODE_PLUGINS=./build/debug/src/plugins/can_tp/can_tp.so</code>
+  for CanTp commands to work.
+</div>
+
+<!-- ═══ CLI PDU ═══ -->
+<h2 id="cli-pdu">CLI — <code>boat pdu</code></h2>
+<p>
+  PDU commands manage AUTOSAR-style protocol data units. Before sending a PDU you must configure
+  a route telling the router how to deliver it.
+</p>
+
+<h3>boat pdu route</h3>
+<p>Adds or updates a routing rule for a PDU ID.</p>
+<table>
+  <tr><th>Option</th><th>Tag</th><th>Description</th></tr>
+  <tr><td><code>--id &lt;hex|dec&gt;</code></td><td><span class="tag req">req</span></td><td>32-bit PDU ID</td></tr>
+  <tr><td><code>--iface &lt;name&gt;</code></td><td><span class="tag req">req</span></td><td>Network interface (tab-completes from <code>/sys/class/net</code>)</td></tr>
+  <tr><td><code>--transport &lt;can|eth&gt;</code></td><td><span class="tag req">req</span></td><td>Delivery transport (tab-completes to <code>can</code> or <code>eth</code>)</td></tr>
+  <tr><td><code>--can-id &lt;hex&gt;</code></td><td><span class="tag def">pdu_id</span></td><td>CAN frame ID override. Default: same as PDU ID.</td></tr>
+  <tr><td><code>--src-ip &lt;addr&gt;</code></td><td><span class="tag opt">opt</span></td><td>Source IP (IPv4 dotted or IPv6 colon-hex). Enables IP/UDP/IpduM mode.</td></tr>
+  <tr><td><code>--dst-ip &lt;addr&gt;</code></td><td><span class="tag opt">opt</span></td><td>Destination IP. Required when <code>--src-ip</code> is set.</td></tr>
+  <tr><td><code>--src-port &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>UDP source port</td></tr>
+  <tr><td><code>--dst-port &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>UDP destination port</td></tr>
+  <tr><td><code>--ttl &lt;N&gt;</code></td><td><span class="tag def">64</span></td><td>IPv4 TTL / IPv6 Hop Limit</td></tr>
+  <tr><td><code>--ethertype &lt;hex&gt;</code></td><td><span class="tag def">0x88B5</span></td><td>Simulation-only EtherType (used when <code>--dst-ip</code> is not set)</td></tr>
+  <tr><td><code>--vlan &lt;ID&gt;</code></td><td><span class="tag def">0</span></td><td>802.1Q VLAN ID (0 = untagged)</td></tr>
+  <tr><td><code>--send-type &lt;mode&gt;</code></td><td><span class="tag def">none</span></td><td>Transmission schedule: <code>none</code> | <code>cyclic</code> | <code>onchange</code> | <code>mixed</code>. Requires <code>--cycle-ms</code> etc.</td></tr>
+  <tr><td><code>--cycle-ms &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>Base cycle in ms for cyclic/mixed modes.</td></tr>
+  <tr><td><code>--fast-ms &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>Fast repetition period in ms for OnChange or Mixed modes.</td></tr>
+  <tr><td><code>--reps &lt;N&gt;</code></td><td><span class="tag def">0</span></td><td>Number of fast repetitions per change event.</td></tr>
+</table>
+
+<pre><code><span class="cm"># Route a PDU over CAN</span>
+boat pdu route --id 0x00AC0001 --transport can --iface vcan0
+
+<span class="cm"># Cyclic schedule: send every 100ms</span>
+boat pdu route --id 0x00AC0001 --transport can --iface vcan0 \
+               --send-type cyclic --cycle-ms 100
+
+<span class="cm"># OnChange schedule: send on change with 3 fast reps at 10ms</span>
+boat pdu route --id 0x00AC0002 --transport can --iface vcan0 \
+               --send-type onchange --fast-ms 10 --reps 3
+
+<span class="cm"># Mixed: cyclic at 200ms + OnChange with 2 fast reps at 20ms</span>
+boat pdu route --id 0x00AC0003 --transport can --iface vcan0 \
+               --send-type mixed --cycle-ms 200 --fast-ms 20 --reps 2
+
+<span class="cm"># Route over UDP/IPv4 — real IP/UDP Ethernet frame</span>
+boat pdu route --id 0x00AC0001 --transport eth --iface enx28107b9f2016 \
+               --src-ip 50.50.0.1 --dst-ip 50.50.0.2 \
+               --src-port 5000 --dst-port 5001
+
+<span class="cm"># Simulation-only: bare Ethernet with custom EtherType (no IP)</span>
+boat pdu route --id 0x00AC0001 --transport eth --iface veth0 \
+               --ethertype 0x88B5</code></pre>
+
+<h3>boat pdu remove-route</h3>
+<p>Removes a PDU routing rule and its transmission schedule entirely.</p>
+<table>
+  <tr><th>Option</th><th>Tag</th><th>Description</th></tr>
+  <tr><td><code>--id &lt;hex|dec&gt;</code></td><td><span class="tag req">req</span></td><td>32-bit PDU ID to remove</td></tr>
+</table>
+<pre><code>boat pdu remove-route --id 0x00AC0001</code></pre>
+
+<div class="callout tip">
+  <strong>Stopping a schedule</strong><br>
+  Three options: (1) <code>--send-type none</code> keeps the route but stops auto-sends,
+  (2) <code>remove-route</code> deletes the route and schedule entirely,
+  (3) use an I-PDU group to silence the PDU while keeping configuration.
+</div>
+
+<div class="callout">
+  <strong>IP mode vs simulation mode</strong><br>
+  When <code>--src-ip</code> / <code>--dst-ip</code> are set, the gateway builds a real IPv4/IPv6 + UDP + IpduM
+  datagram. When omitted, it uses a lightweight simulation format:
+  <code>[PDU_ID 4 bytes big-endian][payload]</code> wrapped in a custom EtherType frame.
+</div>
+
+<h3>boat pdu list-routes</h3>
+<p>Lists all configured PDU routing rules on the gateway.</p>
+<pre><code>boat pdu list-routes</code></pre>
+
+<h3>boat pdu send</h3>
+<table>
+  <tr><th>Option</th><th>Tag</th><th>Description</th></tr>
+  <tr><td><code>--msg &lt;name&gt;</code></td><td><span class="tag req">req*</span></td><td>ETH_PDU message name from database. Packs signals into payload.</td></tr>
+  <tr><td><code>--id &lt;hex|dec&gt;</code></td><td><span class="tag req">req*</span></td><td>32-bit PDU ID (hex or decimal). Overrides database value.</td></tr>
+  <tr><td><code>--data &lt;hex&gt;</code></td><td><span class="tag opt">opt</span></td><td>Raw hex payload. Bypasses signal packing when specified.</td></tr>
+  <tr><td><code>--sig &lt;Name=value&gt;</code></td><td><span class="tag opt">opt</span></td><td>Set signal physical value (repeatable). Requires <code>--msg</code>.</td></tr>
+  <tr><td><code>--db &lt;path&gt;</code></td><td><span class="tag def">pdu_db.json</span></td><td>PDU database JSON file</td></tr>
+</table>
+
+<div class="callout">
+  <strong>*</strong> Provide either <code>--msg</code> (database lookup) or <code>--id</code> + <code>--data</code> (raw mode).
+  A route must already be configured for the PDU ID before sending.
+</div>
+
+<pre><code><span class="cm"># Send from database, override one signal</span>
+boat pdu send --db config/pdu_db_example.json \
+              --msg MotorSpeed_PDU --sig MotorSpeed_ETH=100
+
+<span class="cm"># Raw send with explicit ID and data</span>
+boat pdu send --id 0x00AC0001 --data 0200000000000000</code></pre>
+
+<h3>boat pdu container</h3>
+<p>Registers an IpduM container — multiple PDU IDs share one Ethernet UDP frame. When any member PDU is sent, the router flushes all known slot payloads in a single frame.</p>
+<table>
+  <tr><th>Option</th><th>Tag</th><th>Description</th></tr>
+  <tr><td><code>--msg &lt;name&gt;</code></td><td><span class="tag req">req*</span></td><td>ETH container message name from database (BusType must be <code>ETH</code>). Reads all IpduMEntries, IPs, and ports automatically.</td></tr>
+  <tr><td><code>--db &lt;path&gt;</code></td><td><span class="tag def">pdu_db.json</span></td><td>PDU database file</td></tr>
+  <tr><td><code>--id &lt;hex&gt;</code></td><td><span class="tag opt">opt</span></td><td>Container ID override</td></tr>
+  <tr><td><code>--iface &lt;name&gt;</code></td><td><span class="tag opt">opt</span></td><td>Ethernet interface override</td></tr>
+  <tr><td><code>--src-ip &lt;addr&gt;</code></td><td><span class="tag opt">opt</span></td><td>Source IP override</td></tr>
+  <tr><td><code>--dst-ip &lt;addr&gt;</code></td><td><span class="tag opt">opt</span></td><td>Destination IP override</td></tr>
+  <tr><td><code>--src-port &lt;N&gt;</code></td><td><span class="tag opt">opt</span></td><td>UDP source port override</td></tr>
+  <tr><td><code>--dst-port &lt;N&gt;</code></td><td><span class="tag opt">opt</span></td><td>UDP destination port override</td></tr>
+  <tr><td><code>--ttl &lt;N&gt;</code></td><td><span class="tag opt">opt</span></td><td>TTL override</td></tr>
+  <tr><td><code>--vlan &lt;ID&gt;</code></td><td><span class="tag opt">opt</span></td><td>VLAN ID override</td></tr>
+</table>
+
+<pre><code><span class="cm"># Configure from database (reads IPs, ports, member PDUs automatically)</span>
+boat pdu container --msg Motor_PDU_Container \
+                   --db config/pdu_db_example.json
+
+<span class="cm"># Override specific network parameters</span>
+boat pdu container --msg Motor_PDU_Container \
+                   --db config/pdu_db_example.json \
+                   --iface enx28107b9f2016 \
+                   --src-ip 50.50.0.1 --dst-ip 50.50.0.2 \
+                   --src-port 5000 --dst-port 5001</code></pre>
+
+<h3>boat pdu group</h3>
+<p>Creates or updates an I-PDU group. PDUs in a disabled group are silently dropped on send and receive.</p>
+<table>
+  <tr><th>Option</th><th>Tag</th><th>Description</th></tr>
+  <tr><td><code>--id &lt;hex|dec&gt;</code></td><td><span class="tag req">req</span></td><td>Group ID (non-zero)</td></tr>
+  <tr><td><code>--name &lt;text&gt;</code></td><td><span class="tag opt">opt</span></td><td>Human-readable name</td></tr>
+  <tr><td><code>--pdu &lt;hex&gt;</code></td><td><span class="tag opt">opt</span></td><td>PDU ID to add (repeatable)</td></tr>
+  <tr><td><code>--enabled/--disabled</code></td><td><span class="tag def">enabled</span></td><td>Toggle pair: start enabled or disabled</td></tr>
+</table>
+<pre><code><span class="cm"># Create a group with two PDUs, disabled</span>
+boat pdu group --id 1 --name "Safety" --pdu 0x100 --pdu 0x200 --disabled
+
+<span class="cm"># Enable/disable at runtime</span>
+boat pdu enable-group --id 1
+boat pdu disable-group --id 1
+
+<span class="cm"># List groups</span>
+boat pdu list-groups</code></pre>
+
+<h3>boat pdu subscribe</h3>
+<table>
+  <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>--id &lt;hex&gt;</code></td><td>all</td><td>PDU ID to subscribe (repeatable). Omit to receive all PDUs.</td></tr>
+  <tr><td><code>--count &lt;N&gt;</code></td><td>0 (unlimited)</td><td>Stop after N PDU frames</td></tr>
+</table>
+<pre><code><span class="cm"># Subscribe to two specific PDUs</span>
+boat pdu subscribe --id 0x00AC0001 --id 0x00AC0002
+
+<span class="cm"># Watch all PDUs, stop after 20</span>
+boat pdu subscribe --count 20</code></pre>
+
+<!-- ═══ CLI DB ═══ -->
+<h2 id="cli-db">CLI — <code>boat db</code></h2>
+
+<h3>boat db list</h3>
+<pre><code>boat db list [--db &lt;path&gt;]</code></pre>
+<p>Prints a table of all messages: DbId, BusType, Bus interface, MessageName, signal count, SendType, CycleTime.</p>
+
+<h3>boat db show</h3>
+<pre><code>boat db show --msg &lt;name&gt; [--db &lt;path&gt;] [--pack]</code></pre>
+<p>Prints the full definition of a message: header fields, all signals with bit positions, scaling (Factor/Offset), physical range, and unit.</p>
+<ul>
+  <li><code>--pack</code> — also shows the packed bytes for all InitValue defaults.</li>
+</ul>
+<pre><code>boat db show --msg Motor_1 --db config/pdu_db_example.json
+boat db show --msg MotorSpeed_PDU --db config/pdu_db_example.json --pack</code></pre>
+
+<h3>boat db signal-routes</h3>
+<pre><code>boat db signal-routes [--db &lt;path&gt;]</code></pre>
+<p>Lists all signal routing rules from the database in the form <code>SrcDbId.SigId → DstDbId.SigId</code>.</p>
+
+<!-- ═══ CLI SIM ═══ -->
+<h2 id="cli-sim">CLI — <code>boat sim</code></h2>
+<p>Controls the tick-based simulation lifecycle.</p>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>boat sim create --scenario &lt;id&gt;</code></td><td>Creates a simulation from a scenario</td></tr>
+  <tr><td><code>boat sim start &lt;sim_id&gt;</code></td><td>Transitions to RUNNING state</td></tr>
+  <tr><td><code>boat sim pause &lt;sim_id&gt;</code></td><td>Transitions to PAUSED state</td></tr>
+  <tr><td><code>boat sim step &lt;sim_id&gt; [--ticks N]</code></td><td>Advances N ticks while paused</td></tr>
+  <tr><td><code>boat sim reset &lt;sim_id&gt;</code></td><td>Resets tick counter to 0</td></tr>
+  <tr><td><code>boat sim stop &lt;sim_id&gt;</code></td><td>Transitions to STOPPED state</td></tr>
+  <tr><td><code>boat sim state &lt;sim_id&gt;</code></td><td>Prints current state and tick</td></tr>
+  <tr><td><code>boat sim list</code></td><td>Lists all simulations</td></tr>
+  <tr><td><code>boat sim watch &lt;sim_id&gt;</code></td><td>Streams state changes (blocking)</td></tr>
+</table>
+
+<!-- ═══ CLI SCENARIO ═══ -->
+<h2 id="cli-scenario">CLI — <code>boat scenario</code></h2>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>boat scenario create --file &lt;path&gt;</code></td><td>Creates a scenario from a JSON file</td></tr>
+  <tr><td><code>boat scenario get &lt;id&gt;</code></td><td>Retrieves the scenario definition</td></tr>
+  <tr><td><code>boat scenario list</code></td><td>Lists all stored scenarios</td></tr>
+  <tr><td><code>boat scenario delete &lt;id&gt;</code></td><td>Deletes a scenario by ID</td></tr>
+  <tr><td><code>boat scenario validate --file &lt;path&gt;</code></td><td>Validates a scenario file and reports issues</td></tr>
+</table>
+
+<!-- ═══ CLI TRACE ═══ -->
+<h2 id="cli-trace">CLI — <code>boat trace</code></h2>
+
+<h3>boat trace start</h3>
+<table>
+  <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>--format &lt;fmt&gt;</code></td><td><code>asc</code></td><td>Output format: <code>asc</code> | <code>blf</code> | <code>pcap</code></td></tr>
+  <tr><td><code>--buses &lt;list&gt;</code></td><td>all</td><td>Comma-separated CAN buses to record</td></tr>
+  <tr><td><code>--eth &lt;list&gt;</code></td><td>all</td><td>Comma-separated Ethernet interfaces (pcap only)</td></tr>
+  <tr><td><code>--signals / --no-signals</code></td><td>enabled</td><td>Record BoAt bus signals to .jsonl sidecar</td></tr>
+  <tr><td><code>--output &lt;dir&gt;</code></td><td><code>traces</code></td><td>Output directory</td></tr>
+  <tr><td><code>--name &lt;label&gt;</code></td><td>timestamp</td><td>Optional session label</td></tr>
+</table>
+
+<h3>boat trace stop / status / replay</h3>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>boat trace stop [session_id]</code></td><td>Stops a session or all sessions</td></tr>
+  <tr><td><code>boat trace status</code></td><td>Shows all sessions with their state and file paths</td></tr>
+  <tr><td><code>boat trace replay &lt;file&gt; [options]</code></td><td>Replays an .asc or .blf file into the gateway</td></tr>
+</table>
+
+<h4>boat trace replay options</h4>
+<table>
+  <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>--buses &lt;list&gt;</code></td><td></td><td>CAN interfaces for channel mapping</td></tr>
+  <tr><td><code>--speed &lt;factor&gt;</code></td><td><code>1.0</code></td><td>Playback multiplier. <code>0</code> = as fast as possible.</td></tr>
+  <tr><td><code>--loop</code></td><td>off</td><td>Loop the file indefinitely</td></tr>
+  <tr><td><code>--sim-id &lt;id&gt;</code></td><td></td><td>Simulation ID attached to every replayed frame</td></tr>
+  <tr><td><code>--verbose</code></td><td>off</td><td>Print each frame as it is sent</td></tr>
+  <tr><td><code>--channel &lt;N&gt;</code></td><td></td><td>Only replay frames from this CAN channel (1-based)</td></tr>
+  <tr><td><code>--id &lt;hex&gt;</code></td><td></td><td>Only replay frames with this CAN ID; comma-separated for multiple</td></tr>
+</table>
+
+<div class="callout">
+  <code>boat trace replay</code> sends each frame individually via gRPC, CAN-only.
+  For Ethernet/pcap replay, use <code>boat replay import</code> +
+  <code>boat replay start</code>/<code>stream</code> instead (see
+  <code>docs/howto/replay.md</code> for the full server-side replay reference).
+</div>
+
+<!-- ═══ CLI PLUGIN ═══ -->
+<h2 id="cli-plugin">CLI — <code>boat plugin</code></h2>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>boat plugin register --path &lt;file.so&gt;</code></td><td>Loads a shared library plugin into the running gateway</td></tr>
+  <tr><td><code>boat plugin list</code></td><td>Lists all loaded plugins</td></tr>
+  <tr><td><code>boat plugin info &lt;id&gt;</code></td><td>Prints plugin details</td></tr>
+  <tr><td><code>boat plugin unload &lt;id&gt;</code></td><td>Unloads a plugin</td></tr>
+</table>
+
+<!-- ═══ CLI GEN ═══ -->
+<h2 id="cli-gen">CLI — <code>boat gen</code></h2>
+<p>AI-assisted code generation for plugins and nodes.</p>
+
+<h3>boat gen plugin</h3>
+<table>
+  <tr><th>Option</th><th>Description</th></tr>
+  <tr><td><code>--desc &lt;text&gt;</code></td><td>Plain-language description of what the plugin should do (required)</td></tr>
+  <tr><td><code>--out &lt;path&gt;</code></td><td>Output file (auto-derived from description if omitted)</td></tr>
+  <tr><td><code>--model &lt;name&gt;</code></td><td>Override the LLM model (e.g., <code>qwen2.5-coder:7b</code>)</td></tr>
+  <tr><td><code>--endpoint &lt;url&gt;</code></td><td>Override LLM server URL</td></tr>
+  <tr><td><code>--api-key &lt;token&gt;</code></td><td>Bearer token (also reads <code>BOAT_AI_API_KEY</code>)</td></tr>
+  <tr><td><code>--quality</code></td><td>Use a higher-quality model if the endpoint supports it</td></tr>
+</table>
+
+<h3>boat gen config show / set</h3>
+<pre><code><span class="cm"># Print current AI configuration</span>
+boat gen config show
+
+<span class="cm"># Set a local Ollama endpoint</span>
+boat gen config set --endpoint http://localhost:11434 \
+                    --model qwen2.5-coder:7b</code></pre>
+
+<!-- ═══ CLI COMPLETION ═══ -->
+<h2 id="cli-completion">Shell Tab Completion</h2>
+<p>The CLI has built-in shell completion for bash, zsh, and fish. Install it once:</p>
+<pre><code><span class="cm"># Install (adds a source line to your shell rc)</span>
+boat --install-completion
+
+<span class="cm"># Or print the script to inspect / integrate manually</span>
+boat --show-completion</code></pre>
+<p>After restarting your shell (or sourcing the rc file), the following complete dynamically:</p>
+<ul>
+  <li><code>--transport</code> → <code>can</code>, <code>eth</code></li>
+  <li><code>--iface</code> → all NICs from <code>/sys/class/net/</code></li>
+  <li><code>--db</code> → <code>*.json</code> files in the current directory</li>
+  <li><code>--msg</code> in <code>boat pdu send/container</code> → ETH_PDU message names from <code>--db</code></li>
+  <li><code>--msg</code> in <code>boat db show</code> → all message names from <code>--db</code></li>
+</ul>
+<div class="callout tip">
+  <strong>Tip:</strong> If you type <code>--db path/to/pdu_db_example.json --msg &lt;TAB&gt;</code>, completion reads
+  that specific database file. If <code>--db</code> hasn't been specified yet, it falls back to <code>pdu_db.json</code>
+  in the current directory.
+</div>
+
+<!-- ═══ PYTHON SDK ═══ -->
+<h2 id="sdk-client">Python SDK — BoAtClient</h2>
+<p>The low-level gRPC client. All higher-level node classes wrap it.</p>
+<pre><code><span class="kw">from</span> boat.client <span class="kw">import</span> BoAtClient
+
+client = BoAtClient(<span class="st">"localhost:50051"</span>)
+
+<span class="cm"># Access any gRPC stub directly:</span>
+client.can           <span class="cm"># CanServiceStub</span>
+client.pdu           <span class="cm"># PduServiceStub</span>
+client.ethernet      <span class="cm"># EthernetServiceStub</span>
+client.simulation    <span class="cm"># SimulationServiceStub</span>
+client.signal        <span class="cm"># SignalServiceStub</span>
+client.scenario      <span class="cm"># ScenarioServiceStub</span>
+client.replay        <span class="cm"># ReplayServiceStub</span>
+client.plugin        <span class="cm"># PluginServiceStub</span>
+client.metrics       <span class="cm"># MetricsServiceStub</span>
+client.trace         <span class="cm"># TraceServiceStub</span>
+client.fault         <span class="cm"># FaultServiceStub</span>
+client.debug         <span class="cm"># DebugServiceStub</span>
+client.bus           <span class="cm"># BusServiceStub</span>
+
+client.close()       <span class="cm"># Close the gRPC channel</span></code></pre>
+
+<!-- ═══ SDK PDUNODE ═══ -->
+<h2 id="sdk-pdunode">Python SDK — PduNode</h2>
+<p>Abstract base class for Python PDU processing nodes. Subclass it, override <code>on_pdu()</code>, and call <code>run()</code> or <code>run_background()</code>.</p>
+
+<pre><code><span class="kw">from</span> boat.pdu_node <span class="kw">import</span> PduNode
+<span class="kw">from</span> boat.v1 <span class="kw">import</span> pdu_pb2
+<span class="kw">import</span> socket
+
+<span class="kw">class</span> <span class="cn">MotorNode</span>(PduNode):
+    <span class="kw">def</span> on_pdu(<span class="nm">self</span>, pdu) -> <span class="kw">None</span>:
+        <span class="nm">print</span>(f<span class="st">"PDU 0x{pdu.pdu_id:08X}  payload={pdu.payload.hex(':')}"</span>)
+
+node = MotorNode(pdu_ids=[<span class="nm">0x00AC0001</span>, <span class="nm">0x00AC0002</span>])
+
+<span class="cm"># Configure a route</span>
+<span class="kw">def</span> ip(s): <span class="kw">return</span> socket.inet_pton(socket.AF_INET, s)
+node.configure_route(
+    pdu_id=<span class="nm">0x00AC0001</span>,
+    transport=pdu_pb2.PDU_TRANSPORT_ETHERNET,
+    iface=<span class="st">"enx28107b9f2016"</span>,
+    src_ip=ip(<span class="st">"50.50.0.1"</span>),
+    dst_ip=ip(<span class="st">"50.50.0.2"</span>),
+    src_port=<span class="nm">5000</span>,
+    dst_port=<span class="nm">5001</span>,
+)
+
+<span class="cm"># Send a PDU</span>
+node.send(<span class="nm">0x00AC0001</span>, bytes([<span class="nm">0x01</span>, <span class="nm">0x02</span>, <span class="nm">0x03</span>]))
+
+<span class="cm"># Run in foreground (blocks, calls on_pdu for each received frame)</span>
+node.run()
+
+<span class="cm"># Or run in background thread</span>
+t = node.run_background()
+<span class="cm"># ... do other work ...</span>
+node.stop()</code></pre>
+
+<h4>Method Reference</h4>
+<div class="method-block">
+  <div class="method-sig">configure_route(pdu_id, transport, iface, can_id=0, ethertype=0x88B5, vlan_id=0, src_ip=b"", dst_ip=b"", src_port=0, dst_port=0, ttl=64) → bool</div>
+  <div class="method-desc">Adds or updates a routing rule. Returns <code>True</code> if the gateway accepted it. For real IP delivery set <code>src_ip</code> and <code>dst_ip</code> to 4-byte (IPv4) or 16-byte (IPv6) values.</div>
+</div>
+<div class="method-block">
+  <div class="method-sig">configure_container(container_id, pdu_ids, iface, src_ip, dst_ip, src_port=0, dst_port=0, ttl=64, vlan_id=0) → bool</div>
+  <div class="method-desc">Registers an IpduM container. All PDU IDs in <code>pdu_ids</code> will be multiplexed into one Ethernet frame on each send.</div>
+</div>
+<div class="method-block">
+  <div class="method-sig">send(pdu_id, payload) → bool</div>
+  <div class="method-desc">Sends a PDU via the gateway. A route must be configured first. Returns <code>True</code> if accepted.</div>
+</div>
+<div class="method-block">
+  <div class="method-sig">list_routes() → list</div>
+  <div class="method-desc">Returns a list of <code>PduRoute</code> proto objects from the gateway.</div>
+</div>
+
+<!-- ═══ SDK CANNODE ═══ -->
+<h2 id="sdk-cannode">Python SDK — CanNode</h2>
+
+<pre><code><span class="kw">from</span> boat.can_node <span class="kw">import</span> CanNode
+
+<span class="kw">class</span> <span class="cn">MyCanNode</span>(CanNode):
+    <span class="kw">def</span> on_frame(<span class="nm">self</span>, frame, iface: str) -> <span class="kw">None</span>:
+        <span class="nm">print</span>(f<span class="st">"CAN {iface}  id=0x{frame.can_id:X}  data={bytes(frame.data[:frame.dlc]).hex()}"</span>)
+
+node = MyCanNode(iface_filter=<span class="st">"vcan0"</span>)
+node.send(can_id=<span class="nm">0x7B</span>, data=bytes([<span class="nm">0xDE</span>, <span class="nm">0xAD</span>, <span class="nm">0xBE</span>, <span class="nm">0xEF</span>]), iface=<span class="st">"vcan0"</span>)
+node.run()</code></pre>
+
+<h4>Constructor</h4>
+<table>
+  <tr><th>Parameter</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>address</code></td><td><code>"localhost:50051"</code></td><td>Gateway gRPC address</td></tr>
+  <tr><td><code>iface_filter</code></td><td><code>""</code> (all)</td><td>Only receive frames from this interface</td></tr>
+  <tr><td><code>sim_id</code></td><td><code>""</code></td><td>Simulation ID passed with sent frames</td></tr>
+</table>
+
+<!-- ═══ SDK ETHNODE ═══ -->
+<h2 id="sdk-ethnode">Python SDK — EthernetNode</h2>
+<pre><code><span class="kw">from</span> boat.ethernet_node <span class="kw">import</span> EthernetNode
+
+<span class="kw">class</span> <span class="cn">MyEthNode</span>(EthernetNode):
+    <span class="kw">def</span> on_frame(<span class="nm">self</span>, frame, iface: str) -> <span class="kw">None</span>:
+        <span class="nm">print</span>(f<span class="st">"ETH {iface}  etype=0x{frame.ethertype:04X}  len={len(frame.payload)}"</span>)
+
+node = MyEthNode(iface_filter=<span class="st">"veth0"</span>, ethertype_filter=<span class="nm">0x88B5</span>)
+node.send(ethertype=<span class="nm">0x88B5</span>, payload=bytes([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>]), iface=<span class="st">"veth0"</span>)
+node.run()</code></pre>
+
+<!-- ═══ SDK BUSNODE ═══ -->
+<h2 id="sdk-busnode">Python SDK — BusNode</h2>
+<p>The always-on signal bus is independent of the simulation lifecycle. Any node can publish or subscribe at any time.</p>
+<pre><code><span class="kw">from</span> boat.bus_node <span class="kw">import</span> BusNode
+
+<span class="kw">class</span> <span class="cn">MyBusNode</span>(BusNode):
+    <span class="kw">def</span> on_signal(<span class="nm">self</span>, signal) -> <span class="kw">None</span>:
+        <span class="nm">print</span>(f<span class="st">"{signal.name} = {signal.value}"</span>)
+
+node = MyBusNode(node_id=<span class="st">"my_node"</span>)
+node.publish(<span class="st">"vehicle.speed"</span>, <span class="nm">120.5</span>)
+node.run(names=[<span class="st">"vehicle.speed"</span>, <span class="st">"motor.torque"</span>])</code></pre>
+
+<!-- ═══ SDK MESSAGE ═══ -->
+<h2 id="sdk-message">Python SDK — Message</h2>
+<p>Packs physical signal values into a byte buffer ready for transmission.</p>
+<pre><code><span class="kw">from</span> boat.pdu_db  <span class="kw">import</span> PduDatabase
+<span class="kw">from</span> boat.message <span class="kw">import</span> Message
+
+db    = PduDatabase(<span class="st">"config/pdu_db_example.json"</span>)
+entry = db.by_name(<span class="st">"Motor_1"</span>)
+msg   = Message(entry)
+
+msg.set(<span class="st">"MotorSpeed"</span>, <span class="nm">100.0</span>)   <span class="cm"># 100 rpm</span>
+msg.set(<span class="st">"Clamp15"</span>, <span class="nm">1.0</span>)       <span class="cm"># 1 V</span>
+payload = msg.pack()             <span class="cm"># returns bytes</span>
+
+<span class="nm">print</span>(msg.signal_names())        <span class="cm"># ['MotorSpeed', 'Clamp15']</span>
+<span class="nm">print</span>(msg.get(<span class="st">"MotorSpeed"</span>))    <span class="cm"># 100.0</span>
+<span class="nm">print</span>(msg.length)               <span class="cm"># message byte length</span></code></pre>
+
+<h4>Method Reference</h4>
+<table>
+  <tr><th>Method / Property</th><th>Description</th></tr>
+  <tr><td><code>set(signal_name, physical_value)</code></td><td>Sets a signal by physical value. Raises <code>KeyError</code> if the signal name is not in this message.</td></tr>
+  <tr><td><code>get(signal_name) → float</code></td><td>Returns the current physical value of a signal.</td></tr>
+  <tr><td><code>pack() → bytes</code></td><td>Packs all signals into the message payload. All unset signals use their <code>InitValue</code>.</td></tr>
+  <tr><td><code>signal_names() → list[str]</code></td><td>Returns all signal names in this message.</td></tr>
+  <tr><td><code>.name</code></td><td>Message name string</td></tr>
+  <tr><td><code>.db_id</code></td><td>Database ID (integer)</td></tr>
+  <tr><td><code>.bus_type</code></td><td><code>"CAN"</code>, <code>"CANFD"</code>, <code>"ETH"</code>, or <code>"ETH_PDU"</code></td></tr>
+  <tr><td><code>.bus</code></td><td>Interface name from the database</td></tr>
+  <tr><td><code>.length</code></td><td>Message payload length in bytes</td></tr>
+</table>
+
+<!-- ═══ SDK PDUDB ═══ -->
+<h2 id="sdk-pdudb">Python SDK — PduDatabase</h2>
+<pre><code><span class="kw">from</span> boat.pdu_db <span class="kw">import</span> PduDatabase
+
+db = PduDatabase(<span class="st">"config/pdu_db_example.json"</span>)
+
+db.names()                      <span class="cm"># list of all MessageName strings</span>
+db.by_name(<span class="st">"Motor_1"</span>)          <span class="cm"># raw dict or None</span>
+db.by_id(<span class="nm">15</span>)                   <span class="cm"># raw dict or None (DbId=15)</span>
+db.signal_routes()              <span class="cm"># list of route dicts</span></code></pre>
+
+<p>The returned dicts are the raw JSON objects from the database file. All fields described in the <a href="#pdudb-schema">PDU Database Schema</a> are accessible directly.</p>
+
+<!-- ═══ PDU DATABASE SCHEMA ═══ -->
+<h2 id="pdudb-schema">PDU Database Schema</h2>
+<p>
+  The PDU database is a JSON file. A JSON Schema is provided at
+  <code>config/pdu_db.schema.json</code>. The root object has two keys:
+  <code>messages</code> (array) and <code>signal_routes</code> (array).
+</p>
+
+<h3>Common Message Fields</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>DbId</code></td><td>integer</td><td>Globally unique ID across the entire database</td></tr>
+  <tr><td><code>MessageName</code></td><td>string</td><td>Unique name</td></tr>
+  <tr><td><code>Bus</code></td><td>string</td><td>Interface name (e.g., <code>"vcan0"</code>, <code>"enx28107b9f2016"</code>)</td></tr>
+  <tr><td><code>BusType</code></td><td>enum</td><td><code>"CAN"</code> | <code>"CANFD"</code> | <code>"ETH"</code> | <code>"ETH_PDU"</code></td></tr>
+  <tr><td><code>Direction</code></td><td>0 or 1</td><td><code>0</code>=Source (produced here), <code>1</code>=Routed (consumed from another source)</td></tr>
+  <tr><td><code>RoutingType</code></td><td>0, 1, or 2</td><td><code>0</code>=Source, <code>1</code>=MessageRouting, <code>2</code>=SignalRouting</td></tr>
+  <tr><td><code>TargetDbIds</code></td><td>array | null</td><td>DbIds of routing targets (null when Direction=1)</td></tr>
+  <tr><td><code>SourceDbId</code></td><td>integer | null</td><td>DbId of the origin message (null when Direction=0)</td></tr>
+  <tr><td><code>isE2E</code></td><td>0–7 or false</td><td>AUTOSAR E2E protection profile number, or <code>false</code> if not used</td></tr>
+  <tr><td><code>SendType</code></td><td>string</td><td><code>"Cyclic"</code> | <code>"OnChange"</code> | <code>"Spontaneous"</code></td></tr>
+  <tr><td><code>CycleTime</code></td><td>number</td><td>Cycle time in milliseconds (0 if not cyclic)</td></tr>
+  <tr><td><code>CycleTimeFast</code></td><td>number</td><td>Fast cycle time in ms (0 if not applicable)</td></tr>
+  <tr><td><code>NrOfRepetitions</code></td><td>integer</td><td>Repetition count for event-triggered messages</td></tr>
+  <tr><td><code>signalcount</code></td><td>integer</td><td>Number of signals (must equal <code>signals</code> array length)</td></tr>
+  <tr><td><code>signals</code></td><td>array</td><td>Signal definitions (see below)</td></tr>
+</table>
+
+<h3>CAN / CAN FD Additional Fields</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>Identifier</code></td><td>integer</td><td>CAN ID: 0–0x7FF (11-bit) or 0–0x1FFFFFFF (29-bit)</td></tr>
+  <tr><td><code>FrameType</code></td><td>0 or 1</td><td><code>0</code>=Standard (11-bit), <code>1</code>=Extended (29-bit)</td></tr>
+  <tr><td><code>Length</code></td><td>integer</td><td>Payload bytes: 0–8 (CAN) or 0–64 (CAN FD)</td></tr>
+  <tr><td><code>BRS</code></td><td>boolean</td><td>CAN FD Bit Rate Switch flag</td></tr>
+</table>
+
+<h3>ETH Container Additional Fields (<code>BusType="ETH"</code>)</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>EtherType</code></td><td>integer</td><td>EtherType value (0x0800=IPv4, 0x86DD=IPv6, 0x88B5=sim)</td></tr>
+  <tr><td><code>VlanId</code></td><td>integer</td><td>802.1Q VLAN ID (0=untagged)</td></tr>
+  <tr><td><code>SrcMAC</code></td><td>string</td><td>Source MAC, e.g. <code>"AA:BB:CC:DD:EE:FF"</code> (empty = auto)</td></tr>
+  <tr><td><code>DstMAC</code></td><td>string</td><td>Destination MAC (empty = broadcast)</td></tr>
+  <tr><td><code>SrcIP</code></td><td>string</td><td>Source IPv4 or IPv6 address</td></tr>
+  <tr><td><code>DstIP</code></td><td>string</td><td>Destination IP address</td></tr>
+  <tr><td><code>SrcPort</code></td><td>integer</td><td>UDP source port</td></tr>
+  <tr><td><code>DstPort</code></td><td>integer</td><td>UDP destination port</td></tr>
+  <tr><td><code>TTL</code></td><td>integer</td><td>IPv4 TTL / IPv6 Hop Limit (0 = gateway default of 64)</td></tr>
+  <tr><td><code>IpduMEntries</code></td><td>array</td><td>DbIds of member ETH_PDU messages in this container</td></tr>
+</table>
+
+<h3>ETH_PDU Additional Fields (<code>BusType="ETH_PDU"</code>)</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>PduId</code></td><td>integer</td><td>32-bit AUTOSAR PDU ID (e.g., <code>11272193</code> = <code>0x00AC0001</code>)</td></tr>
+  <tr><td><code>ContainerDbId</code></td><td>integer</td><td>DbId of the parent ETH container</td></tr>
+  <tr><td><code>Length</code></td><td>integer</td><td>PDU payload length in bytes</td></tr>
+</table>
+
+<h3>Signal Fields</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>id</code></td><td>integer</td><td>Unique ID within this message (≥1)</td></tr>
+  <tr><td><code>SignalName</code></td><td>string</td><td>Signal name</td></tr>
+  <tr><td><code>Length</code></td><td>integer</td><td>Signal width in bits (≥1)</td></tr>
+  <tr><td><code>StartPos</code></td><td>integer</td><td>Start bit position (LSB, 0-indexed)</td></tr>
+  <tr><td><code>ByteOrder</code></td><td>0 or 1</td><td><code>0</code>=Intel/little-endian, <code>1</code>=Motorola/big-endian</td></tr>
+  <tr><td><code>ValueType</code></td><td>string</td><td><code>"Unsigned"</code> | <code>"Signed"</code> | <code>"Float"</code> | <code>"Bool"</code></td></tr>
+  <tr><td><code>SigSendType</code></td><td>boolean</td><td>Whether this signal triggers OnChange or fast-cycle transmission</td></tr>
+  <tr><td><code>Repetitions</code></td><td>integer</td><td>Transmission repetitions</td></tr>
+  <tr><td><code>InitValue</code></td><td>number</td><td>Default physical value (used when signal has not been explicitly set)</td></tr>
+  <tr><td><code>Factor</code></td><td>number</td><td>Linear scaling: <em>physical = raw × Factor + Offset</em></td></tr>
+  <tr><td><code>Offset</code></td><td>number</td><td>Linear offset (see above)</td></tr>
+  <tr><td><code>Min</code></td><td>number</td><td>Minimum physical value</td></tr>
+  <tr><td><code>Max</code></td><td>number</td><td>Maximum physical value</td></tr>
+  <tr><td><code>Unit</code></td><td>string</td><td>Engineering unit (e.g., <code>"rpm"</code>, <code>"V"</code>, <code>""</code>)</td></tr>
+  <tr><td><code>EnumValues</code></td><td>object | null</td><td>Map of raw integer keys to string labels (e.g., <code>{"0":"Off","1":"On"}</code>)</td></tr>
+</table>
+
+<h3>signal_routes Array</h3>
+<table>
+  <tr><th>Field</th><th>Description</th></tr>
+  <tr><td><code>SrcDbId</code></td><td>Source message DbId</td></tr>
+  <tr><td><code>SrcSignalId</code></td><td>Source signal <code>id</code> within that message</td></tr>
+  <tr><td><code>DstDbId</code></td><td>Destination message DbId</td></tr>
+  <tr><td><code>DstSignalId</code></td><td>Destination signal <code>id</code> within that message</td></tr>
+</table>
+
+<!-- ═══ PDU DATABASE EXAMPLE ═══ -->
+<h2 id="pdudb-example">PDU Database — Example</h2>
+<p>The provided example file (<code>config/pdu_db_example.json</code>) contains five messages:</p>
+
+<table>
+  <tr><th>DbId</th><th>Name</th><th>BusType</th><th>Bus</th><th>Description</th></tr>
+  <tr><td>15</td><td>Motor_1</td><td>CAN</td><td>vcan0</td><td>Source CAN message: MotorSpeed (16-bit, 0.5 rpm/bit) and Clamp15 (8-bit, 1 V/bit)</td></tr>
+  <tr><td>20</td><td>Motor_1_GW</td><td>CANFD</td><td>vcan1</td><td>CAN FD gateway version of Motor_1, E2E profile 4, BRS enabled</td></tr>
+  <tr><td>30</td><td>Motor_PDU_Container</td><td>ETH</td><td>enx28107b9f2016</td><td>IpduM container carrying PDUs 31 and 32 over UDP 50.50.0.1→50.50.0.2 port 5000→5001</td></tr>
+  <tr><td>31</td><td>MotorSpeed_PDU</td><td>ETH_PDU</td><td>(container)</td><td>PDU ID 0x00AC0001 — carries MotorSpeed_ETH signal</td></tr>
+  <tr><td>32</td><td>Clamp15_PDU</td><td>ETH_PDU</td><td>(container)</td><td>PDU ID 0x00AC0002 — carries Clamp15_ETH signal</td></tr>
+</table>
+
+<p>Signal routing rules in this example:</p>
+<ul>
+  <li>Motor_1 <code>MotorSpeed</code> (signal id 2) → MotorSpeed_PDU <code>MotorSpeed_ETH</code> (signal id 1)</li>
+  <li>Motor_1 <code>Clamp15</code> (signal id 1) → Clamp15_PDU <code>Clamp15_ETH</code> (signal id 1)</li>
+</ul>
+
+<!-- ═══ IPDUMFORMAT ═══ -->
+<h2 id="ipdumformat">IpduM Container Wire Format</h2>
+<p>
+  BoAt uses the AUTOSAR IpduM <strong>LONG header</strong> format. Each PDU entry in a container frame is:
+</p>
+<pre><code>╔══════════════════╦══════════════════╦═══════════════════════╗
+║  PDU_ID (4B BE)  ║  DLC (4B BE)     ║  payload (DLC bytes)  ║
+╚══════════════════╩══════════════════╩═══════════════════════╝</code></pre>
+
+<p>Multiple entries are concatenated. The container bytes are then wrapped in:</p>
+<pre><code>Ethernet frame:
+  [Ethernet Header 14B]
+  └─ IPv4/IPv6 header
+      └─ UDP header
+          └─ IpduM container (one or more entries)</code></pre>
+
+<p><strong>Example</strong> — two PDUs in one frame:</p>
+<pre><code>PDU 0x00AC0001 with payload 0x0200000000000000 (8 bytes):
+  00 AC 00 01  00 00 00 08  02 00 00 00 00 00 00 00
+
+PDU 0x00AC0002 with payload 0xAA (1 byte):
+  00 AC 00 02  00 00 00 01  AA
+
+Combined: 00 AC 00 01 00 00 00 08 02 00 00 00 00 00 00 00
+          00 AC 00 02 00 00 00 01 AA</code></pre>
+
+<!-- ═══ HOW-TOs ═══ -->
+<h2 id="howto-can">How-To: Send and Receive CAN Frames</h2>
+
+<h3>Via CLI</h3>
+<pre><code><span class="cm"># Raw frame</span>
+boat frame send --bus-type can --can-id 0x7B --data DEADBEEF --iface vcan0
+
+<span class="cm"># From database with signal values (separate one-shot dispatcher, see the</span>
+<span class="cm"># callout under "boat frame send" above)</span>
+python3 -m boat can send --msg Motor_1 --sig MotorSpeed=100 --sig Clamp15=1 \
+              --db config/pdu_db_example.json
+
+<span class="cm"># Subscribe in another terminal</span>
+boat frame subscribe --bus-types can --iface vcan0</code></pre>
+
+<h3>Via Python SDK</h3>
+<pre><code><span class="kw">from</span> boat.client <span class="kw">import</span> BoAtClient
+<span class="kw">from</span> boat.v1 <span class="kw">import</span> can_pb2
+
+c = BoAtClient()
+
+<span class="cm"># Send</span>
+c.can.SendCanFrame(can_pb2.SendCanFrameRequest(
+    frame=can_pb2.CanFrame(
+        can_id=<span class="nm">0x7B</span>,
+        dlc=<span class="nm">4</span>,
+        data=bytes([<span class="nm">0xDE</span>, <span class="nm">0xAD</span>, <span class="nm">0xBE</span>, <span class="nm">0xEF</span>]),
+        iface=<span class="st">"vcan0"</span>,
+    )
+))
+
+<span class="cm"># Subscribe (streaming)</span>
+<span class="kw">for</span> frame <span class="kw">in</span> c.can.SubscribeCanFrames(can_pb2.SubscribeCanFramesRequest(iface=<span class="st">"vcan0"</span>)):
+    <span class="nm">print</span>(f<span class="st">"id=0x{frame.can_id:X} data={bytes(frame.data[:frame.dlc]).hex()}"</span>)</code></pre>
+
+<!-- ═══ HOW-TO PDU ═══ -->
+<h2 id="howto-pdu">How-To: Send a PDU over IP/UDP</h2>
+
+<p>Sending a PDU over a real Ethernet link requires two steps: first configure a route, then send.</p>
+
+<ol class="steps">
+  <li>
+    <div class="step-body">
+      <strong>Configure the route</strong>
+<pre><code>boat pdu route --id 0x00AC0001 --transport eth \
+               --iface enx28107b9f2016 \
+               --src-ip 50.50.0.1 --dst-ip 50.50.0.2 \
+               --src-port 5000 --dst-port 5001</code></pre>
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Send the PDU</strong>
+<pre><code>boat pdu send --id 0x00AC0001 --data 0200000000000000</code></pre>
+      Or from the database with signal packing:
+<pre><code>boat pdu send --db config/pdu_db_example.json \
+              --msg MotorSpeed_PDU --sig MotorSpeed_ETH=100</code></pre>
+    </div>
+  </li>
+</ol>
+
+<p>The gateway builds a real IPv4 + UDP + IpduM datagram and transmits it via the raw socket driver. The receiving host can parse it as a standard UDP packet with IpduM payload.</p>
+
+<!-- ═══ HOW-TO CONTAINER ═══ -->
+<h2 id="howto-container">How-To: IpduM Container (Multiple PDUs in One Frame)</h2>
+<p>
+  An IpduM container groups multiple PDU IDs into a single Ethernet UDP frame.
+  When any member PDU is sent, the gateway immediately flushes all slot payloads
+  that have been written at least once.
+</p>
+
+<ol class="steps">
+  <li>
+    <div class="step-body">
+      <strong>Register the container</strong> (reads member PDUs and IPs from the database)
+<pre><code>boat pdu container --msg Motor_PDU_Container \
+                   --db config/pdu_db_example.json \
+                   --iface enx28107b9f2016 \
+                   --src-ip 50.50.0.1 --dst-ip 50.50.0.2 \
+                   --src-port 5000 --dst-port 5001</code></pre>
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Send member PDUs — they are automatically batched</strong>
+<pre><code><span class="cm"># First send: only MotorSpeed_PDU in the frame</span>
+boat pdu send --db config/pdu_db_example.json \
+              --msg MotorSpeed_PDU --sig MotorSpeed_ETH=100
+
+<span class="cm"># Second send: both PDUs in the same frame</span>
+boat pdu send --db config/pdu_db_example.json \
+              --msg Clamp15_PDU --sig Clamp15_ETH=1</code></pre>
+    </div>
+  </li>
+</ol>
+
+<div class="callout tip">
+  <strong>Container vs per-PDU route</strong><br>
+  Once a container is registered, you do <em>not</em> also need to call <code>boat pdu route</code>
+  for the individual PDU IDs — the container definition overrides the per-PDU route lookup.
+</div>
+
+<h3>From Python</h3>
+<pre><code><span class="kw">import</span> socket
+<span class="kw">from</span> boat.pdu_node <span class="kw">import</span> PduNode
+<span class="kw">from</span> boat.v1 <span class="kw">import</span> pdu_pb2
+
+<span class="kw">def</span> ip(s): <span class="kw">return</span> socket.inet_pton(socket.AF_INET, s)
+
+node = PduNode()
+node.configure_container(
+    container_id=<span class="nm">1</span>,
+    pdu_ids=[<span class="nm">0x00AC0001</span>, <span class="nm">0x00AC0002</span>],
+    iface=<span class="st">"enx28107b9f2016"</span>,
+    src_ip=ip(<span class="st">"50.50.0.1"</span>),
+    dst_ip=ip(<span class="st">"50.50.0.2"</span>),
+    src_port=<span class="nm">5000</span>,
+    dst_port=<span class="nm">5001</span>,
+)
+
+node.send(<span class="nm">0x00AC0001</span>, bytes([<span class="nm">0x02</span>, <span class="nm">0x00</span>, <span class="nm">0x00</span>, <span class="nm">0x00</span>, <span class="nm">0x00</span>, <span class="nm">0x00</span>, <span class="nm">0x00</span>, <span class="nm">0x00</span>]))
+node.send(<span class="nm">0x00AC0002</span>, bytes([<span class="nm">0xAA</span>]))</code></pre>
+
+<!-- ═══ HOW-TO SUBSCRIBE ═══ -->
+<h2 id="howto-subscribe">How-To: Subscribe to PDU Frames</h2>
+
+<h3>Via CLI</h3>
+<pre><code><span class="cm"># Watch a specific PDU (requires the route to be configured first)</span>
+boat pdu subscribe --id 0x00AC0001
+
+<span class="cm"># Watch all PDUs</span>
+boat pdu subscribe</code></pre>
+
+<h3>Via Python SDK (background thread)</h3>
+<pre><code><span class="kw">import</span> time
+<span class="kw">from</span> boat.pdu_node <span class="kw">import</span> PduNode
+
+<span class="kw">class</span> <span class="cn">PrintNode</span>(PduNode):
+    <span class="kw">def</span> on_pdu(<span class="nm">self</span>, pdu) -> <span class="kw">None</span>:
+        <span class="nm">print</span>(f<span class="st">"[{pdu.iface}] 0x{pdu.pdu_id:08X} {pdu.payload.hex()}"</span>)
+
+node = PrintNode(pdu_ids=[<span class="nm">0x00AC0001</span>, <span class="nm">0x00AC0002</span>])
+t = node.run_background()
+
+time.sleep(<span class="nm">30</span>)   <span class="cm"># collect for 30 seconds</span>
+node.stop()
+t.join()</code></pre>
+
+<!-- ═══ HOW-TO HWETH ═══ -->
+<h2 id="howto-hweth">How-To: Physical Ethernet with USB Adapters</h2>
+
+<ol class="steps">
+  <li>
+    <div class="step-body">
+      <strong>Assign static IPs to both adapters</strong>
+<pre><code>sudo ip addr add 50.50.0.1/24 dev enx28107b9f2016
+sudo ip addr add 50.50.0.2/24 dev enx28107b9f2017
+sudo ip link set enx28107b9f2016 up
+sudo ip link set enx28107b9f2017 up</code></pre>
+      These commands do not survive a reboot; re-run or add to your network configuration.
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Grant the gateway binary raw-socket access</strong>
+<pre><code>sudo setcap cap_net_raw+ep ./build/debug/src/gateway/grpc_gateway/boat_gateway</code></pre>
+      Preferred over running the whole gateway as <code>root</code> — a <code>sudo</code>-run gateway
+      leaves root-owned files behind (e.g. under <code>/tmp</code>) that block later non-root runs
+      from writing to the same paths. Reapply after every rebuild.
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Start the gateway with both physical NICs registered</strong>
+<pre><code>BOAT_ETH_INTERFACES=raw:enx28107b9f2016,raw:enx28107b9f2017 \
+./build/debug/src/gateway/grpc_gateway/boat_gateway</code></pre>
+      Verify startup output:
+<pre><code>[Gateway] Registered raw Ethernet interface 'enx28107b9f2016'
+[Gateway] Registered raw Ethernet interface 'enx28107b9f2017'</code></pre>
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Configure a PDU route and send</strong>
+<pre><code>boat pdu route --id 0x00AC0001 --transport eth \
+               --iface enx28107b9f2016 \
+               --src-ip 50.50.0.1 --dst-ip 50.50.0.2 \
+               --src-port 5000 --dst-port 5001
+
+boat pdu send --id 0x00AC0001 --data DEADBEEF</code></pre>
+    </div>
+  </li>
+  <li>
+    <div class="step-body">
+      <strong>Verify receipt</strong> on the second adapter
+<pre><code><span class="cm"># List interfaces to confirm both registered</span>
+boat frame list-ifaces
+
+<span class="cm"># Subscribe to all traffic on the receiving interface</span>
+boat frame subscribe --bus-types ethernet --iface enx28107b9f2017</code></pre>
+    </div>
+  </li>
+</ol>
+
+<!-- ═══ HOW-TO SIGNALS ═══ -->
+<h2 id="howto-signals">How-To: Signal Routing Across Buses</h2>
+<p>
+  Signal routes are defined in the database <code>signal_routes</code> array. They describe
+  which physical value in one message should be copied to which physical value in another.
+  The gateway resolves these routes when forwarding frames.
+</p>
+
+<p>Example from <code>pdu_db_example.json</code>: when Motor_1 (CAN) is received, its <em>MotorSpeed</em>
+signal value is automatically copied into the <em>MotorSpeed_ETH</em> signal of MotorSpeed_PDU (ETH_PDU).</p>
+
+<pre><code><span class="cm"># Inspect configured routes</span>
+boat db signal-routes --db config/pdu_db_example.json</code></pre>
+
+<!-- ═══ HOW-TO PDU FEATURES ═══ -->
+<h2 id="howto-pdu-features">PDU Features Reference</h2>
+
+<h3>I-PDU Groups</h3>
+<p>
+  Groups enable or disable sets of PDUs at runtime. PDUs in a disabled group
+  are silently dropped — no send, no dispatch to subscribers. Useful for
+  simulating bus-off conditions, silent modes, or domain gating.
+</p>
+<pre><code><span class="cm"># CLI</span>
+boat pdu group --id 1 --name "Safety" --pdu 0x100 --pdu 0x200 --disabled
+boat pdu enable-group --id 1
+boat pdu disable-group --id 1
+boat pdu list-groups
+
+<span class="cm"># Python SDK</span>
+<span class="kw">from</span> boat.pdu_node <span class="kw">import</span> PduNode
+node = PduNode()
+node.configure_group(group_id=<span class="nm">1</span>, name=<span class="st">"Safety"</span>,
+                     pdu_ids=[<span class="nm">0x100</span>, <span class="nm">0x200</span>], enabled=<span class="kw">False</span>)
+node.enable_group(<span class="nm">1</span>)
+node.disable_group(<span class="nm">1</span>)
+groups = node.list_groups()</code></pre>
+
+<h3>Transmission Schedules</h3>
+<p>
+  Routes can specify automatic sending behavior. The transmission engine
+  is driven by the gateway's tick timer (default 1ms). The tick interval
+  is the minimum achievable cycle time.
+</p>
+<table>
+  <tr><th>Mode</th><th>CLI value</th><th>Behavior</th></tr>
+  <tr><td>Cyclic</td><td><code>--send-type cyclic --cycle-ms N</code></td><td>Send every N ms</td></tr>
+  <tr><td>OnChange</td><td><code>--send-type onchange --fast-ms N --reps M</code></td><td>Send on payload change, then M fast repetitions at N ms intervals</td></tr>
+  <tr><td>Mixed</td><td><code>--send-type mixed --cycle-ms N --fast-ms M --reps R</code></td><td>Cyclic at N ms + OnChange with R fast reps at M ms</td></tr>
+</table>
+<pre><code><span class="cm"># Cyclic: every 100ms</span>
+boat pdu route --id 0x100 --transport can --iface vcan0 \
+               --send-type cyclic --cycle-ms 100
+
+<span class="cm"># OnChange: send on change + 3 fast reps at 10ms</span>
+boat pdu route --id 0x200 --transport can --iface vcan0 \
+               --send-type onchange --fast-ms 10 --reps 3
+
+<span class="cm"># Mixed: cyclic at 200ms + change trigger + 2 reps at 20ms</span>
+boat pdu route --id 0x300 --transport can --iface vcan0 \
+               --send-type mixed --cycle-ms 200 --fast-ms 20 --reps 2
+
+<span class="cm"># Seed the payload (first send), then engine drives the rest</span>
+boat pdu send --id 0x100 --data 010203
+
+<span class="cm"># Stop the schedule</span>
+boat pdu route --id 0x100 --transport can --iface vcan0 --send-type none</code></pre>
+
+<h3>COM Signal Library (C++)</h3>
+<p>
+  Bit-level signal packing with Intel/Motorola byte order, physical-to-raw
+  conversion, and AUTOSAR E2E CRC. All functions are in
+  <code>src/hil/pdu/com/com_signal.h</code>.
+</p>
+<pre><code><span class="pn">#include</span> <span class="st">"pdu/com/com_signal.h"</span>
+<span class="kw">using namespace</span> boat::hil::com;
+
+MessageDef msg;
+msg.length_bytes = <span class="nm">8</span>;
+SignalDef sig;
+sig.name       = <span class="st">"Speed"</span>;
+sig.bit_length = <span class="nm">16</span>;
+sig.start_pos  = <span class="nm">0</span>;
+sig.factor     = <span class="nm">0.5</span>;
+sig.offset     = <span class="nm">0.0</span>;
+
+<span class="kw">auto</span> packed = PackSignals(msg, {{<span class="st">"Speed"</span>, <span class="nm">100.0</span>}});
+<span class="kw">auto</span> unpacked = UnpackSignals(msg, packed.data(), packed.size());
+
+<span class="cm">// E2E CRC</span>
+uint8_t  crc8  = E2eCrc8(data, len);
+uint16_t crc16 = E2eCrc16(data, len);
+uint32_t crc32 = E2eCrc32(data, len);</code></pre>
+
+<h3>CanTp Plugin (ISO 15765-2)</h3>
+<p>
+  Segments large PDUs into multiple CAN frames. Load as a node plugin:
+</p>
+<pre><code>BOAT_NODE_PLUGINS=./build/debug/src/plugins/can_tp/can_tp.so \
+  BOAT_CAN_INTERFACES=vcan0 \
+  ./build/debug/src/gateway/grpc_gateway/boat_gateway</code></pre>
+<p>Programmatic C API (standalone, not part of the plugin vtable):</p>
+<pre><code><span class="pn">#include</span> <span class="st">&lt;boat/can_tp.h&gt;</span>
+
+CanTpConfig cfg;
+cfg.nsdu_id            = <span class="nm">0x7E0</span>;
+cfg.source_addr        = <span class="nm">0x7E0</span>;  <span class="cm">// this node's CAN ID</span>
+cfg.target_addr        = <span class="nm">0x7E8</span>;  <span class="cm">// peer node's CAN ID</span>
+cfg.block_size         = <span class="nm">0</span>;     <span class="cm">// BS = unlimited</span>
+cfg.st_min             = <span class="nm">0</span>;     <span class="cm">// no separation time</span>
+cfg.rx_buffer_size     = <span class="nm">4095</span>;
+cfg.can_dlc            = <span class="nm">8</span>;
+cfg.extended_addressing = <span class="kw">false</span>;
+can_tp_configure(plugin_ctx, &amp;cfg);
+
+uint8_t data[] = {<span class="nm">0x01</span>, <span class="nm">0x02</span>, <span class="cm">/* ... */</span>, <span class="nm">0xFF</span>};  <span class="cm">// 255 bytes</span>
+can_tp_send(plugin_ctx, <span class="nm">0x7E0</span>, data, <span class="nm">255</span>);</code></pre>
+
+<h3>SOME/IP Plugin</h3>
+<p>
+  Lightweight SOME/IP middleware for Ethernet UDP. Listens on the configured
+  SD port, responds to REQUEST messages with RESPONSE echoes.
+</p>
+<pre><code>BOAT_NODE_PLUGINS=./build/debug/src/plugins/someip/someip.so \
+  BOAT_ETH_INTERFACES=veth0 \
+  ./build/debug/src/gateway/grpc_gateway/boat_gateway</code></pre>
+<p>Config via JSON (passed as <code>config_json</code> to <code>initialize</code>):</p>
+<pre><code>{"sd_port": 30490}</code></pre>
+<p>
+  Offered services registered internally respond to incoming SOME/IP REQUEST
+  messages. Service Discovery (FIND→OFFER) and SUBSCRIBE→SUBSCRIBE_ACK are
+  supported in simplified form.
+</p>
+
+<!-- ═══ HOW-TO TRACE ═══ -->
+<h2 id="howto-trace">How-To: Record and Replay a Trace</h2>
+
+<pre><code><span class="cm"># Start recording all CAN traffic to .asc format</span>
+boat trace start --format asc --output ./traces --name motor_test
+
+<span class="cm"># ... run your test scenario ...</span>
+
+<span class="cm"># Stop recording</span>
+boat trace stop
+
+<span class="cm"># List recorded files</span>
+boat trace status
+
+<span class="cm"># Replay at 2× real-time speed</span>
+boat trace replay traces/motor_test_*.asc --buses vcan0 --speed 2.0</code></pre>
+
+<div class="callout">
+  <strong>Recorder daemon</strong>
+  The trace commands communicate with a separate recorder daemon running at
+  <code>http://localhost:8083</code> by default. Start it before using <code>boat trace</code>:
+<pre><code>python3 demo/recorder.py</code></pre>
+</div>
+
+<!-- ═══ gRPC SERVICES ═══ -->
+<h2 id="grpc-services">gRPC Service Reference</h2>
+<p>The gateway listens on <code>0.0.0.0:50051</code> with plain-text gRPC (no TLS). All proto files are in <code>proto/boat/v1/</code>.</p>
+
+<table>
+  <tr><th>Service</th><th>Proto file</th><th>Key RPCs</th></tr>
+  <tr><td>FrameService <em>(v8, unified)</em></td><td>frame.proto</td><td>SendFrame, SubscribeFrames — one send/subscribe surface for all bus types (CAN/CANFD/ETHERNET/PDU/TCP)</td></tr>
+  <tr><td>CanService <em>(legacy)</em></td><td>can.proto</td><td>SendCanFrame, SubscribeCanFrames, ListBuses</td></tr>
+  <tr><td>EthernetService <em>(legacy)</em></td><td>ethernet.proto</td><td>SendFrame, SubscribeFrames, ListInterfaces</td></tr>
+  <tr><td>PduService</td><td>pdu.proto</td><td>SendPdu, SubscribePdus, ConfigureRoute, ListRoutes, ConfigureContainer, ConfigureGroup, EnableGroup, DisableGroup, ListGroups, RemoveRoute</td></tr>
+  <tr><td>SimulationService</td><td>simulation.proto</td><td>Create/Start/Pause/Step/Reset/Stop/GetState/Watch/ListSimulations</td></tr>
+  <tr><td>SignalService</td><td>signal.proto</td><td>InjectSignal, SubscribeSignals, GetSignalHistory</td></tr>
+  <tr><td>BusService</td><td>bus.proto</td><td>Publish, Subscribe (always-on signal bus)</td></tr>
+  <tr><td>ScenarioService</td><td>scenario.proto</td><td>Create/Get/List/Validate/Delete</td></tr>
+  <tr><td>FaultService</td><td>fault.proto</td><td>InjectFault, ListFaults</td></tr>
+  <tr><td>TraceService</td><td>trace.proto</td><td>GetTrace, ListTraces, StreamTrace</td></tr>
+  <tr><td>ReplayService</td><td>replay.proto</td><td>StartReplay, SeekReplay, StreamReplay</td></tr>
+  <tr><td>PluginService</td><td>plugin.proto</td><td>RegisterPlugin, ListPlugins, GetPluginInfo, UnloadPlugin</td></tr>
+  <tr><td>MetricsService</td><td>metrics.proto</td><td>GetMetrics, StreamMetrics</td></tr>
+  <tr><td>DebugService</td><td>debug.proto</td><td>StreamEvents (RPC audit log, all calls)</td></tr>
+</table>
+
+<h3>Watching the RPC Audit Log</h3>
+<pre><code><span class="kw">from</span> boat.client <span class="kw">import</span> BoAtClient
+<span class="kw">from</span> boat.v1 <span class="kw">import</span> debug_pb2
+
+c = BoAtClient()
+<span class="kw">for</span> ev <span class="kw">in</span> c.debug.StreamEvents(debug_pb2.StreamRpcEventsRequest()):
+    <span class="nm">print</span>(f<span class="st">"[{ev.event_type}] {ev.method} {ev.summary}"</span>)</code></pre>
+
+<!-- ═══ SIGNAL PACKING ═══ -->
+<h2 id="signal-packing">Signal Packing Reference</h2>
+
+<p>The <code>Message.pack()</code> method encodes physical values into raw bytes using a two-step process:</p>
+
+<h3>1. Physical → Raw conversion</h3>
+<pre><code>raw = round((physical - Offset) / Factor)</code></pre>
+<p>Example: MotorSpeed with Factor=0.5, Offset=0 at 100 rpm → <code>raw = round(100 / 0.5) = 200</code></p>
+
+<h3>2. Bit insertion</h3>
+<table>
+  <tr><th>ByteOrder</th><th>Value</th><th>Bit layout</th></tr>
+  <tr><td>0 — Intel</td><td>little-endian</td><td>StartPos is the LSB; bits fill toward higher bit numbers, crossing byte boundaries byte-by-byte from low to high.</td></tr>
+  <tr><td>1 — Motorola</td><td>big-endian</td><td>StartPos is the MSB; bits fill toward lower bit numbers within each byte.</td></tr>
+</table>
+
+<p>The reverse (raw → physical) formula is: <code>physical = raw * Factor + Offset</code></p>
+
+<!-- ═══ FAQ ═══ -->
+<h2 id="faq">FAQ</h2>
+
+<details>
+  <summary>The gateway starts but <code>boat frame list-ifaces</code> shows no interfaces</summary>
+  <div class="faq-body">
+    <p>The gateway only registers interfaces that exist at startup time. Check:</p>
+    <ul>
+      <li><code>BOAT_CAN_INTERFACES</code> is set correctly and the interface actually exists: <code>ip link show vcan0</code></li>
+      <li>For <code>vcan</code>: load the kernel module first: <code>sudo modprobe vcan</code>, then create the interface: <code>sudo ip link add vcan0 type vcan &amp;&amp; sudo ip link set vcan0 up</code></li>
+    </ul>
+  </div>
+</details>
+
+<details>
+  <summary>boat pdu send fails with <code>RPC error [NOT_FOUND]: No route configured</code></summary>
+  <div class="faq-body">
+    <p>This means either:</p>
+    <ol>
+      <li>No route has been configured for this PDU ID — run <code>boat pdu route</code> first.</li>
+      <li>The Ethernet interface failed to register at startup — check the gateway log for <code>[Gateway] Failed to open raw Ethernet interface</code>.</li>
+      <li>The physical NIC had a transient TX buffer overflow. The gateway retries up to 3 times with 2 ms spacing; if you still see failures, try sending again.</li>
+    </ol>
+    <p>Note: <code>ConfigureRoute</code> succeeds even if the interface is not registered (it only adds an in-memory routing rule). The failure only surfaces when you actually try to send.</p>
+  </div>
+</details>
+
+<details>
+  <summary>I configured a PDU container but the subscriber receives 0 frames</summary>
+  <div class="faq-body">
+    <p>Make sure the receiving side also has a matching route or container configured so the <code>PduRouter</code> recognises incoming frames as belonging to a PDU. Without that, <code>OnEthernetFrame</code> silently drops the packet. The fix: <code>SubscribePdus</code> dispatches to subscribers for any PDU ID that is registered — either via <code>ConfigureRoute</code> or <code>ConfigureContainer</code> — on the receiving gateway.</p>
+    <p>If you're testing loopback (same gateway sends and receives), the route or container configuration is shared, so this should work automatically after the container is registered.</p>
+  </div>
+</details>
+
+<details>
+  <summary>How do I use physical CAN interfaces (not virtual)?</summary>
+  <div class="faq-body">
+    <p>BoAt uses SocketCAN. Any SocketCAN-compatible adapter works:</p>
+    <pre><code>sudo ip link set can0 up type can bitrate 500000
+BOAT_CAN_INTERFACES=can0 ./boat_gateway</code></pre>
+    <p>For CAN FD, also set <code>dbitrate</code>:</p>
+    <pre><code>sudo ip link set can0 up type can bitrate 500000 dbitrate 2000000 fd on</code></pre>
+  </div>
+</details>
+
+<details>
+  <summary>Static IPs on USB Ethernet adapters disappear after reboot</summary>
+  <div class="faq-body">
+    <p><code>ip addr add</code> is not persistent. To persist with NetworkManager:</p>
+    <pre><code>nmcli connection add type ethernet ifname enx28107b9f2016 \
+      ip4 50.50.0.1/24 gw4 0.0.0.0
+nmcli connection up &lt;uuid&gt;</code></pre>
+    <p>Or add entries to <code>/etc/network/interfaces</code> if you use ifupdown.</p>
+  </div>
+</details>
+
+<details>
+  <summary>How do I run the gateway without sudo for raw Ethernet?</summary>
+  <div class="faq-body">
+    <p>Grant the <code>CAP_NET_RAW</code> capability to the binary — this is the recommended
+    approach, not just a workaround. Running the gateway with <code>sudo</code> instead leaves
+    root-owned files behind (e.g. trace files under <code>/tmp</code>) that block later non-root
+    runs from writing to the same paths.</p>
+    <pre><code>sudo setcap cap_net_raw+ep ./build/debug/src/gateway/grpc_gateway/boat_gateway</code></pre>
+    <p>After this, you can run the gateway as a normal user with raw Ethernet support. The
+    capability is stored on the binary's inode, so reapply it after every rebuild.</p>
+  </div>
+</details>
+
+<details>
+  <summary>What is the difference between simulation Ethernet (ETH) and real Ethernet?</summary>
+  <div class="faq-body">
+    <p>The simulation (virtual) path uses a lightweight frame format: <code>[PDU_ID 4 bytes big-endian] + payload</code> wrapped in a custom EtherType (default 0x88B5). No IP or UDP headers are involved — it's a simple simulation convenience.</p>
+    <p>The real (IP/UDP) path builds a proper IPv4 or IPv6 + UDP + IpduM datagram. Enable it by providing <code>--src-ip</code> and <code>--dst-ip</code> in the route configuration. This is compatible with standard network equipment and AUTOSAR stacks.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Can I connect from a different machine?</summary>
+  <div class="faq-body">
+    <p>Yes. The gateway listens on <code>0.0.0.0:50051</code> (all interfaces). Use the gateway's IP address in the CLI:</p>
+    <pre><code>boat --host 192.168.1.10:50051 pdu list-routes</code></pre>
+    <p>Or in the Python SDK: <code>BoAtClient("192.168.1.10:50051")</code></p>
+  </div>
+</details>
+
+<details>
+  <summary>How do I generate a plugin with AI?</summary>
+  <div class="faq-body">
+    <p>Configure the LLM endpoint first (e.g., a local Ollama server):</p>
+    <pre><code>boat gen config set --endpoint http://localhost:11434 --model qwen2.5-coder:7b</code></pre>
+    <p>Then describe your plugin:</p>
+    <pre><code>boat gen plugin --desc "Subscribe to vcan0 and print every CAN frame with its ID and payload in hex"</code></pre>
+    <p>The generated .cpp or .py file is saved to the working directory and can be loaded with <code>boat plugin register</code>.</p>
+  </div>
+</details>
+
+<details>
+  <summary>What is the BusService vs SignalService?</summary>
+  <div class="faq-body">
+    <p><strong>BusService</strong> is a lightweight always-on publish/subscribe system for named values. It runs independently of any simulation lifecycle. Use it for high-level vehicle signals that any node can publish or subscribe to at any time. Values can be <code>number</code>, <code>string</code>, <code>bool</code>, or <code>bytes</code>.</p>
+    <p><strong>SignalService</strong> is tightly coupled to the simulation tick. Use it for signals that need to be injected at specific simulation ticks, queried historically, or recorded with tick accuracy.</p>
+  </div>
+</details>
+
+<details>
+  <summary>How is the IpduM container format structured?</summary>
+  <div class="faq-body">
+    <p>BoAt uses the AUTOSAR IpduM <strong>LONG header</strong> format. Each PDU entry occupies:</p>
+    <pre><code>[PDU_ID: 4 bytes, big-endian]
+[DLC:    4 bytes, big-endian]
+[payload: DLC bytes]</code></pre>
+    <p>Entries are concatenated with no padding. The resulting buffer is carried as the UDP payload. Receiving hosts parse the buffer by reading 8-byte headers and advancing by the DLC to find the next entry.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Tab completion doesn't work after <code>boat --install-completion</code></summary>
+  <div class="faq-body">
+    <p>The completion script is sourced from your shell's RC file (<code>~/.bashrc</code> or <code>~/.zshrc</code>). You need to reload it:</p>
+    <pre><code>source ~/.bashrc   # bash
+source ~/.zshrc    # zsh</code></pre>
+    <p>If you use a non-standard shell or a virtualenv, make sure the <code>boat</code> binary on your <code>PATH</code> is the same one that was installed.</p>
+  </div>
+</details>
+
+<hr>
+<p style="color:var(--muted); font-size:0.82rem; text-align:center; padding-top:1rem;">
+  BoAt Platform Documentation — Generated from source. All CLI options and SDK signatures reflect the current codebase.
+</p>
+
+</main>
+
+<script>
+  // Highlight active nav link based on scroll position
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.parentElement.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.parentElement.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -75% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

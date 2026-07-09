@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package boat.v1;
+
+message CanFrame {
+  uint32 can_id       = 1;
+  uint32 dlc          = 2;  // actual byte count (0-8 classic, 0-64 FD)
+  bytes  data         = 3;
+  uint64 timestamp_ns = 4;
+  string iface        = 5;
+  uint32 flags        = 6;  // CANFD_FDF=4, CANFD_BRS=1, CANFD_ESI=2, SELF_SENT=8; 0 = classic CAN
+}
+
+message SendCanFrameRequest {
+  string   simulation_id = 1;
+  CanFrame frame         = 2;
+}
+
+message SendCanFrameResponse { bool accepted = 1; }
+
+message SubscribeCanFramesRequest {
+  string simulation_id = 1;
+  string iface         = 2;  // empty = all registered interfaces
+}
+
+message CanBusInfo {
+  string iface      = 1;  // interface name, e.g. "can0", "vcan0"
+  string driver     = 2;  // kernel driver, e.g. "peak_usb", "vcan", "socketcan"
+  string state      = 3;  // "up", "down", "unknown"
+  bool   fd_support = 4;  // CAN FD capable (mtu >= 72)
+  uint32 bitrate    = 5;  // nominal bitrate in bit/s, 0 if unknown
+}
+
+message ListBusesRequest {}
+message ListBusesResponse { repeated CanBusInfo buses = 1; }
+
+service CanService {
+  rpc SendCanFrame(SendCanFrameRequest)             returns (SendCanFrameResponse);
+  rpc SubscribeCanFrames(SubscribeCanFramesRequest) returns (stream CanFrame);
+  rpc ListBuses(ListBusesRequest)                  returns (ListBusesResponse);
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "name": "virtual-ci",
+  "description": "All-virtual environment for CI pipeline. Uses vcan and veth interfaces.",
+  "gateway": {
+    "binary": "./build/debug/src/gateway/grpc_gateway/boat_gateway",
+    "tick_ms": 10,
+    "address": "localhost:50051"
+  },
+  "buses": {
+    "can1": { "type": "virtual", "interface": "vcan0" },
+    "can2": { "type": "virtual", "interface": "vcan1" },
+    "eth0": {
+      "type": "virtual_eth",
+      "interface": "veth0",
+      "multicast_group": "239.255.0.1",
+      "port": 51000
+    }
+  },
+  "dut": {
+    "name": "sim-dut",
+    "type": "plugin",
+    "so_path": "./build/debug/src/plugins/pdu_router/pdu_router.so",
+    "config_json": "{}"
+  },
+  "plugins": []
+}

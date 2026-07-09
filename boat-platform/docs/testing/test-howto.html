@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoAt Test Framework — How-To Guide</title>
+<style>
+  :root {
+    --bg:       #0f1117;
+    --surface:  #181c27;
+    --border:   #2a2f3f;
+    --accent:   #4f9cf9;
+    --accent2:  #7dd3fc;
+    --green:    #4ade80;
+    --yellow:   #fbbf24;
+    --red:      #f87171;
+    --text:     #e2e8f0;
+    --muted:    #94a3b8;
+    --code-bg:  #0d1117;
+    --nav-w:    260px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: var(--nav-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 1.5rem 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    padding: 0 1.25rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  .nav-logo .brand {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .nav-logo .sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  nav ul { list-style: none; padding: 0 0.5rem; }
+  nav ul li a {
+    display: block;
+    padding: 0.3rem 0.75rem;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+  }
+  nav ul li a:hover { background: var(--border); color: var(--text); }
+  nav ul li.section-head > a {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    cursor: default;
+    pointer-events: none;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  main {
+    margin-left: var(--nav-w);
+    padding: 3rem 4rem;
+    max-width: 960px;
+    flex: 1;
+  }
+  main h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+  }
+  main h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--accent2);
+  }
+  main h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.75rem;
+    color: var(--text);
+  }
+  main p { margin: 0.75rem 0; color: var(--muted); }
+  main ul, main ol { margin: 0.75rem 0 0.75rem 1.5rem; color: var(--muted); }
+  main li { margin: 0.3rem 0; }
+  main code {
+    background: var(--code-bg);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.85em;
+    font-family: "SF Mono", "Fira Code", monospace;
+    color: var(--yellow);
+  }
+  main pre {
+    background: var(--code-bg);
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin: 0.75rem 0;
+    border: 1px solid var(--border);
+  }
+  main pre code { background: none; padding: 0; color: var(--text); }
+  main .note {
+    background: rgba(79, 156, 249, 0.1);
+    border-left: 3px solid var(--accent);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  main .tip {
+    background: rgba(74, 222, 128, 0.1);
+    border-left: 3px solid var(--green);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  main .warn {
+    background: rgba(251, 191, 36, 0.1);
+    border-left: 3px solid var(--yellow);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  main table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+  }
+  main th {
+    background: var(--surface);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+    color: var(--text);
+    font-weight: 600;
+  }
+  main td {
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  @media (max-width: 768px) {
+    nav { display: none; }
+    main { margin-left: 0; padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="brand">BoAt</div>
+    <div class="sub">Test Framework</div>
+  </div>
+  <ul>
+    <li class="section-head"><a>Getting Started</a></li>
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#setup">Setup &amp; Installation</a></li>
+    <li><a href="#first-test">Your First Test</a></li>
+
+    <li class="section-head"><a>Configuration</a></li>
+    <li><a href="#env-config">Environment Config</a></li>
+    <li><a href="#manifest">Test Suite Manifest</a></li>
+    <li><a href="#example-configs">Example Configs</a></li>
+
+    <li class="section-head"><a>Writing Tests</a></li>
+    <li><a href="#test-harness">TestHarness API</a></li>
+    <li><a href="#can-bus">CAN Bus Operations</a></li>
+    <li><a href="#eth-bus">Ethernet Operations</a></li>
+    <li><a href="#pdu-signals">PDU Signal Packing</a></li>
+    <li><a href="#steps-assertions">Steps &amp; Assertions</a></li>
+    <li><a href="#dut">DUT Abstraction</a></li>
+
+    <li class="section-head"><a>Running Tests</a></li>
+    <li><a href="#cli">CLI Reference</a></li>
+    <li><a href="#parallel">Parallel Execution</a></li>
+    <li><a href="#matrix">Test Matrix</a></li>
+    <li><a href="#preflight">Pre-flight Checks</a></li>
+
+    <li class="section-head"><a>Reports</a></li>
+    <li><a href="#html-report">HTML Report</a></li>
+    <li><a href="#junit">JUnit XML</a></li>
+    <li><a href="#allure">Allure Reports</a></li>
+    <li><a href="#report-structure">Report Structure</a></li>
+
+    <li class="section-head"><a>Advanced</a></li>
+    <li><a href="#trace-recording">Trace Recording</a></li>
+    <li><a href="#cpp-tests">C++ Tests</a></li>
+    <li><a href="#best-practices">Best Practices</a></li>
+  </ul>
+</nav>
+
+<main>
+<h1>BoAt Test Framework</h1>
+<p style="font-size:1.1rem; color:var(--text); margin-bottom:2rem;">
+  How-To Guide for Test Engineers
+</p>
+
+<!-- ── Introduction ────────────────────────────────────────────────────────── -->
+<h2 id="intro">Introduction</h2>
+<p>
+  The <strong>boat-test</strong> framework is a Python-based HIL (Hardware-in-the-Loop)
+  and system test framework for the BoAt platform. It lets you write tests that
+  interact with Devices Under Test (DUTs) over CAN, CAN FD, and Ethernet networks
+  — using either real hardware or virtual interfaces.
+</p>
+<p>
+  Tests are <strong>hardware-agnostic</strong>: the same test runs against
+  virtual interfaces (for CI), physical hardware (for HIL labs), or a mix of both.
+  The only thing that changes is the <strong>environment configuration</strong> JSON file.
+</p>
+
+<div class="tip">
+  <strong>Key idea:</strong> Write your test once, run it on any environment.
+  Switch from virtual CAN to physical CAN by changing one config file.
+</div>
+
+<!-- ── Setup ───────────────────────────────────────────────────────────────── -->
+<h2 id="setup">Setup &amp; Installation</h2>
+<h3>Prerequisites</h3>
+<ul>
+  <li>Python 3.11+</li>
+  <li>BoAt CLI installed: <code>pip install -e ./cli</code></li>
+  <li>BoAt SDK installed: <code>pip install -e ./sdk/python</code></li>
+  <li>A running BoAt gateway (or access to one)</li>
+</ul>
+
+<h3>Quick Install</h3>
+<pre><code>cd /path/to/boat-platform
+pip install -e ./sdk/python[dev]
+pip install -e ./cli</code></pre>
+
+<h3>Virtual CAN (for testing without hardware)</h3>
+<pre><code>sudo modprobe vcan
+sudo ip link add vcan0 type vcan
+sudo ip link add vcan1 type vcan
+sudo ip link set vcan0 up
+sudo ip link set vcan1 up</code></pre>
+
+<!-- ── First Test ──────────────────────────────────────────────────────────── -->
+<h2 id="first-test">Your First Test</h2>
+<p>
+  Here is a minimal test that sends a CAN frame and checks for a response.
+  Save it as <code>my_first_test.py</code>:
+</p>
+
+<pre><code>"""Test: engine responds to RPM request."""
+import sys
+sys.path.insert(0, "path/to/boat-platform")
+
+from boat.test import TestHarness
+
+harness = TestHarness("config/tests/env_virtual.json")
+harness.start()
+harness.load_pdu_database("config/pdu_db_test.json")
+
+can1 = harness.can_bus("can1")
+can2 = harness.can_bus("can2")
+
+try:
+    with harness.step(1, "Send RPM request") as step:
+        can1.send(0x100, b'\x01\xF4')
+        harness.advance(100)
+        frame = can2.expect(can_id=0x300, timeout_ms=500)
+        step.assert_true(frame is not None)
+        step.assert_equal(frame.can_id, 0x300)
+finally:
+    harness.stop().save("report.json")</code></pre>
+
+<p>Run it:</p>
+<pre><code>python3 my_first_test.py</code></pre>
+
+<div class="note">
+  This depends on a running gateway with the configured interfaces.
+  For testing without a gateway, see the <a href="#preflight">pre-flight checks</a>
+  and <a href="#cli">CLI runner</a> sections.
+</div>
+
+<!-- ── Environment Config ──────────────────────────────────────────────────── -->
+<h2 id="env-config">Environment Configuration</h2>
+<p>
+  The environment config maps <strong>logical bus names</strong> (used in your test code)
+  to <strong>physical or virtual interfaces</strong>. This is the key to hardware-agnostic
+  testing.
+</p>
+
+<pre><code>{
+  "schema_version": "1.0",
+  "name": "my-hil-environment",
+  "description": "2 real CAN buses + 1 virtual Ethernet",
+
+  "gateway": {
+    "binary": "./build/debug/src/gateway/grpc_gateway/boat_gateway",
+    "tick_ms": 10,
+    "address": "localhost:50051",
+    "pdu_database": "./config/pdu_db_test.json"
+  },
+
+  "buses": {
+    "can1": { "type": "physical", "interface": "can0", "bitrate": 500000 },
+    "can2": { "type": "virtual",  "interface": "vcan0" },
+    "eth0": {
+      "type": "virtual_eth",
+      "interface": "veth0",
+      "multicast_group": "239.255.0.1",
+      "port": 51000
+    }
+  },
+
+  "dut": {
+    "name": "ecu-42",
+    "type": "plugin",
+    "so_path": "./build/debug/src/plugins/pdu_router/pdu_router.so"
+  },
+
+  "plugins": []
+}</code></pre>
+
+<h3>Bus Types</h3>
+<table>
+  <tr><th>Type</th><th>Interface Pattern</th><th>Driver</th><th>Hardware Required</th></tr>
+  <tr><td><code>"virtual"</code></td><td><code>vcan*</code></td><td>VirtualCanDriver</td><td>No</td></tr>
+  <tr><td><code>"physical"</code></td><td><code>can*</code></td><td>PhysicalCanDriver</td><td>Yes (CAN interface)</td></tr>
+  <tr><td><code>"virtual_eth"</code></td><td><code>veth*</code></td><td>VirtualEthernetDriver</td><td>No</td></tr>
+  <tr><td><code>"raw_eth"</code></td><td><code>eth*</code></td><td>RawSocketEthernetDriver</td><td>Yes (NIC)</td></tr>
+</table>
+
+<div class="tip">
+  Use <code>"virtual"</code> during development and CI.
+  Switch to <code>"physical"</code> when running on the HIL rig.
+  Your test code stays unchanged.
+</div>
+
+<!-- ── Manifest ────────────────────────────────────────────────────────────── -->
+<h2 id="manifest">Test Suite Manifest</h2>
+<p>
+  A manifest JSON groups multiple tests and defines shared setup/teardown.
+  Use it with <code>boat test run</code>.
+</p>
+
+<pre><code>{
+  "schema_version": "1.0",
+  "name": "Engine Control Tests",
+  "version": "1.2.0",
+  "environment_config": "config/tests/env_virtual.json",
+
+  "setup": [
+    { "action": "load_scenario", "params": { "id": "engine_start" } }
+  ],
+
+  "tests": [
+    {
+      "id": "TC-RPM-001",
+      "name": "Basic RPM Response",
+      "file": "echo hello",
+      "timeout_s": 30
+    },
+    {
+      "id": "TC-RPM-002",
+      "name": "RPM Out of Range",
+      "file": "python3 tests/test_rpm_out_of_range.py",
+      "timeout_s": 60
+    }
+  ],
+
+  "teardown": [
+    { "action": "remove_route", "params": { "pdu_id": 256 } }
+  ]
+}</code></pre>
+
+<h3>Manifest Fields</h3>
+<table>
+  <tr><th>Field</th><th>Description</th></tr>
+  <tr><td><code>name</code></td><td>Suite name (used as group in reports)</td></tr>
+  <tr><td><code>environment_config</code></td><td>Path to environment config JSON</td></tr>
+  <tr><td><code>setup</code></td><td>Actions run before any test (load scenarios, configure routes)</td></tr>
+  <tr><td><code>teardown</code></td><td>Actions run after all tests complete</td></tr>
+  <tr><td><code>tests[].id</code></td><td>Unique test identifier</td></tr>
+  <tr><td><code>tests[].name</code></td><td>Human-readable test name</td></tr>
+  <tr><td><code>tests[].file</code></td><td>Command to run (executable, Python script, etc.)</td></tr>
+  <tr><td><code>tests[].timeout_s</code></td><td>Test timeout in seconds (default: 60)</td></tr>
+</table>
+
+<!-- ── Example Configs ─────────────────────────────────────────────────────── -->
+<h2 id="example-configs">Pre-built Example Configs</h2>
+<p>Three ready-to-use environment configs are available in <code>config/tests/</code>:</p>
+
+<table>
+  <tr><th>File</th><th>Name</th><th>CAN 1</th><th>CAN 2</th><th>Ethernet</th><th>Use Case</th></tr>
+  <tr><td><code>env_virtual.json</code></td><td>virtual-ci</td><td>vcan0</td><td>vcan1</td><td>veth0</td><td>CI pipeline, local dev</td></tr>
+  <tr><td><code>env_hybrid.json</code></td><td>hybrid-hil-01</td><td>can0 (physical)</td><td>can1 (physical, FD)</td><td>veth0</td><td>HIL lab with real CAN</td></tr>
+  <tr><td><code>env_physical.json</code></td><td>physical-hil-01</td><td>can0 (physical)</td><td>can1 (physical, FD)</td><td>eth0 (raw)</td><td>Full hardware setup</td></tr>
+</table>
+
+<p>List available configs:</p>
+<pre><code>boat test list-environments --path config/tests</code></pre>
+
+<p>Inspect a config:</p>
+<pre><code>boat test show-config -c config/tests/env_virtual.json</code></pre>
+
+<!-- ── TestHarness API ─────────────────────────────────────────────────────── -->
+<h2 id="test-harness">TestHarness API</h2>
+<p>
+  The <code>TestHarness</code> is the main entry point for all test scripts.
+  It manages gateway lifecycle, bus connections, DUT interaction, test steps,
+  and reporting.
+</p>
+
+<h3>Lifecycle</h3>
+<pre><code>from boat.test import TestHarness
+
+harness = TestHarness("config/tests/env_virtual.json")
+harness.start()       # starts gateway, connects gRPC, starts trace
+# ... run your test ...
+report = harness.stop()    # stops trace, shuts down gateway
+report.save("report.json")</code></pre>
+
+<h3>Quick Reference</h3>
+<table>
+  <tr><th>Method / Property</th><th>Description</th></tr>
+  <tr><td><code>harness.start()</code></td><td>Start gateway and connect</td></tr>
+  <tr><td><code>harness.stop(report_dir=None)</code></td><td>Stop gateway, return TestReport</td></tr>
+  <tr><td><code>harness.can_bus("can1")</code></td><td>Get CAN bus by logical name</td></tr>
+  <tr><td><code>harness.eth_bus("eth0")</code></td><td>Get Ethernet bus by logical name</td></tr>
+  <tr><td><code>harness.sim</code></td><td>Simulation control (create, start, step, stop)</td></tr>
+  <tr><td><code>harness.dut</code></td><td>DUT proxy (configure, reset)</td></tr>
+  <tr><td><code>harness.pdu</code></td><td>PDU helper (after load_pdu_database)</td></tr>
+  <tr><td><code>harness.report</code></td><td>Current TestReport instance</td></tr>
+  <tr><td><code>harness.step(id, name)</code></td><td>Context manager for a test step</td></tr>
+  <tr><td><code>harness.advance(ms)</code></td><td>Advance simulation time</td></tr>
+  <tr><td><code>harness.load_pdu_database(path)</code></td><td>Load a PDU database for signal access</td></tr>
+</table>
+
+<!-- ── CAN Bus ─────────────────────────────────────────────────────────────── -->
+<h2 id="can-bus">CAN Bus Operations</h2>
+<p>
+  <code>TestCanBus</code> provides both raw frame and symbolic signal-level access.
+</p>
+
+<h3>Raw Frame Operations</h3>
+<pre><code>can1 = harness.can_bus("can1")
+
+# Send a CAN frame
+can1.send(can_id=0x100, data=b'\x01\xF4', flags=0)
+
+# Wait for a matching frame (with timeout)
+frame = can1.expect(can_id=0x300, timeout_ms=500)
+
+# Subscribe to all frames on this bus
+for frame in can1.subscribe():
+    print(f"ID=0x{frame.can_id:X} Data={bytes(frame.data).hex()}")</code></pre>
+
+<h3>Signal-Level Operations (with PDU Database)</h3>
+<pre><code>harness.load_pdu_database("config/pdu_db_test.json")
+can1 = harness.can_bus("can1")
+can2 = harness.can_bus("can2")
+
+# Pack signals and send
+can1.send_signal("VehicleSpeed", {"VehicleSpeed": 100.0})
+
+# Receive frame and unpack signals
+values = can2.expect_signal("VehicleSpeed",
+                            signals={"VehicleSpeed": 100.0},
+                            can_id=0x100)</code></pre>
+
+<div class="note">
+  <code>send_signal()</code> and <code>expect_signal()</code> use the PDU database
+  to pack/unpack signals with correct bit positions, byte order (Intel/Motorola),
+  factor/offset scaling, and CAN ID lookup.
+</div>
+
+<!-- ── Ethernet ────────────────────────────────────────────────────────────── -->
+<h2 id="eth-bus">Ethernet Operations</h2>
+<pre><code>eth0 = harness.eth_bus("eth0")
+
+# Send an Ethernet frame
+eth0.send(
+    dst_mac=b'\x00\x11\x22\x33\x44\x55',
+    ethertype=0x88B5,
+    payload=b'\x01\x02\x03',
+)
+
+# Wait for a frame with matching ethertype
+frame = eth0.expect(ethertype=0x88B5, timeout_ms=1000)</code></pre>
+
+<!-- ── PDU Signals ─────────────────────────────────────────────────────────── -->
+<h2 id="pdu-signals">PDU Signal Packing</h2>
+<p>
+  The <code>PduHelper</code> class wraps the PDU database and provides
+  symbolic signal access. You don't need to know CAN IDs, bit positions,
+  factors, or byte orders — everything is read from the database.
+</p>
+
+<pre><code>from boat.test import PduHelper
+
+helper = PduHelper("config/pdu_db_test.json")
+
+# Look up a message
+msg = helper.get_message("VehicleSpeed")
+print(f"CAN ID: 0x{helper.lookup_can_id('VehicleSpeed'):X}")
+
+# Pack signals into raw bytes
+payload = helper.pack("VehicleSpeed", {"VehicleSpeed": 100.0})
+
+# Unpack raw bytes into signal values
+values = helper.unpack("VehicleSpeed", raw_bytes)
+print(values["VehicleSpeed"])  # → 100.0</code></pre>
+
+<p>
+  The PDU database format supports Intel and Motorola byte order,
+  unsigned/signed/float/bool value types, factor/offset scaling,
+  and enum value labels.
+</p>
+
+<!-- ── Steps & Assertions ──────────────────────────────────────────────────── -->
+<h2 id="steps-assertions">Steps &amp; Assertions</h2>
+<p>
+  Test steps structure your test into logical, reportable units. Each step
+  records stimuli, observations, and assertions in the report.
+</p>
+
+<pre><code>with harness.step(1, "Send RPM request") as step:
+    step.record_stimulus(type="can", bus="can1", can_id=0x100, data="01F4")
+
+    can1.send(0x100, b'\x01\xF4')
+    harness.advance(100)
+
+    frame = can2.expect(can_id=0x300, timeout_ms=500)
+    step.record_observation(type="can", bus="can2", can_id=0x300,
+                           data=bytes(frame.data).hex())
+
+    # Assertions (auto-recorded in report)
+    step.assert_true(frame is not None, "response received")
+    step.assert_equal(frame.can_id, 0x300, "correct CAN ID")</code></pre>
+
+<h3>Step API</h3>
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>step.assert_true(condition, expr)</code></td><td>Assert condition is truthy</td></tr>
+  <tr><td><code>step.assert_equal(actual, expected, expr)</code></td><td>Assert equality</td></tr>
+  <tr><td><code>step.assert_frame_matches(frame, can_id, data)</code></td><td>Assert CAN frame matches</td></tr>
+  <tr><td><code>step.record_stimulus(...)</code></td><td>Record a stimulus event</td></tr>
+  <tr><td><code>step.record_observation(...)</code></td><td>Record an observation</td></tr>
+</table>
+
+<!-- ── DUT ─────────────────────────────────────────────────────────────────── -->
+<h2 id="dut">DUT Abstraction</h2>
+<p>
+  The <code>DutProxy</code> represents your Device Under Test. It supports
+  three backends:
+</p>
+
+<table>
+  <tr><th>Backend</th><th>Config <code>"type"</code></th><th>Description</th></tr>
+  <tr><td>Plugin</td><td><code>"plugin"</code></td><td>DUT loaded as a gateway plugin (.so)</td></tr>
+  <tr><td>Physical</td><td><code>"physical"</code></td><td>Real ECU on the bus (no gateway management)</td></tr>
+  <tr><td>Mock</td><td><code>"mock"</code></td><td>In-process mock for unit testing</td></tr>
+</table>
+
+<pre><code>dut = harness.dut
+
+# Configure the DUT
+dut.configure({"mode": "diagnostic"})
+
+# Read DUT firmware version
+print(dut.version)
+
+# Reset to known state
+dut.reset()</code></pre>
+
+<!-- ── CLI Reference ───────────────────────────────────────────────────────── -->
+<h2 id="cli">CLI Reference</h2>
+<p>All test commands are under <code>boat test</code>:</p>
+
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>boat test run &lt;manifest&gt;</code></td><td>Run a test suite</td></tr>
+  <tr><td><code>boat test list-environments</code></td><td>List available environment configs</td></tr>
+  <tr><td><code>boat test show-config -c &lt;config&gt;</code></td><td>Show parsed environment config</td></tr>
+  <tr><td><code>boat test validate-config -c &lt;config&gt;</code></td><td>Validate config against schema</td></tr>
+  <tr><td><code>boat test check-env -c &lt;config&gt;</code></td><td>Pre-flight environment check</td></tr>
+</table>
+
+<h3><code>boat test run</code> Options</h3>
+<table>
+  <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>-c, --config</code></td><td>—</td><td>Override environment config</td></tr>
+  <tr><td><code>-r, --report-dir</code></td><td><code>./reports</code></td><td>Report output directory</td></tr>
+  <tr><td><code>--stop-on-failure</code></td><td>false</td><td>Stop after first failure</td></tr>
+  <tr><td><code>--no-html</code></td><td>false</td><td>Skip HTML report generation</td></tr>
+  <tr><td><code>--allure &lt;dir&gt;</code></td><td>—</td><td>Enable Allure reports</td></tr>
+  <tr><td><code>-n, --parallel &lt;N&gt;</code></td><td>1</td><td>Parallel workers</td></tr>
+  <tr><td><code>--matrix &lt;a,b,c&gt;</code></td><td>—</td><td>Run against multiple environments</td></tr>
+  <tr><td><code>--preflight</code></td><td>false</td><td>Run pre-flight checks first</td></tr>
+  <tr><td><code>--trace-format</code></td><td>blf</td><td>Trace format (blf/asc/pcap)</td></tr>
+  <tr><td><code>--recorder-url</code></td><td>—</td><td>Recorder daemon URL for trace capture</td></tr>
+  <tr><td><code>-v, --verbose</code></td><td>false</td><td>Verbose output</td></tr>
+</table>
+
+<!-- ── Parallel ────────────────────────────────────────────────────────────── -->
+<h2 id="parallel">Parallel Execution</h2>
+<p>
+  Run independent tests concurrently with the <code>-n</code> flag.
+  Each test runs in its own subprocess. Reports are generated per test.
+</p>
+
+<pre><code># Run with 4 parallel workers
+boat test run manifest.json -n 4
+
+# Stop on first failure in parallel mode
+boat test run manifest.json -n 4 --stop-on-failure</code></pre>
+
+<div class="note">
+  Parallel execution is safe because each test is an independent subprocess.
+  Tests must not depend on state from other tests.
+</div>
+
+<!-- ── Test Matrix ─────────────────────────────────────────────────────────── -->
+<h2 id="matrix">Test Matrix</h2>
+<p>
+  Run the same suite against multiple environment configurations.
+  Each environment gets its own subdirectory under <code>--report-dir</code>.
+</p>
+
+<pre><code># Run against three environments
+boat test run manifest.json \
+  --matrix "config/tests/env_virtual.json,config/tests/env_hybrid.json"
+
+# Output structure:
+# reports/virtual-ci/20260616_*_TC-001/report.html
+# reports/hybrid-hil-01/20260616_*_TC-001/report.html</code></pre>
+
+<!-- ── Preflight ───────────────────────────────────────────────────────────── -->
+<h2 id="preflight">Pre-flight Checks</h2>
+<p>
+  Validate your environment before running tests. The checks verify that
+  CAN/Ethernet interfaces exist, the gateway binary is present, and the
+  gateway is reachable.
+</p>
+
+<pre><code># Standalone check
+boat test check-env -c config/tests/env_virtual.json
+
+# Check before running
+boat test run manifest.json --preflight
+
+# Machine-readable (JSON) output
+boat --json test check-env -c config/tests/env_virtual.json</code></pre>
+
+<h3>What is checked</h3>
+<table>
+  <tr><th>Check</th><th>What it validates</th></tr>
+  <tr><td>Gateway binary</td><td>File exists at configured path</td></tr>
+  <tr><td>CAN interfaces</td><td>Exists in <code>/sys/class/net/</code>, state is <code>up</code></td></tr>
+  <tr><td>Ethernet interfaces</td><td>Exists in <code>/sys/class/net/</code></td></tr>
+  <tr><td>PDU database</td><td>File exists</td></tr>
+  <tr><td>DUT plugin</td><td><code>.so</code> file exists</td></tr>
+  <tr><td>Gateway connectivity</td><td>TCP connect to <code>host:port</code></td></tr>
+</table>
+
+<!-- ── HTML Report ─────────────────────────────────────────────────────────── -->
+<h2 id="html-report">HTML Report</h2>
+<p>
+  Every test run produces a self-contained HTML report (unless <code>--no-html</code> is set).
+  Open it in any browser. The report shows:
+</p>
+
+<ul>
+  <li>Test verdict with color-coded badge (PASS green / FAIL red)</li>
+  <li>Test metadata (ID, name, version, description)</li>
+  <li>Execution info (timestamps, duration, runner, CI job)</li>
+  <li>Environment configuration snapshot</li>
+  <li>Precondition steps table</li>
+  <li>Per-step collapsible sections with:
+    <ul>
+      <li>Stimuli table (CAN/Ethernet TX frames)</li>
+      <li>Observations table (CAN/Ethernet RX frames)</li>
+      <li>Expected values table</li>
+      <li>Assertions with color-coded rows (PASS green, FAIL red, ERROR orange)</li>
+      <li>Trace references and attachment links</li>
+    </ul>
+  </li>
+  <li>Full test summary</li>
+</ul>
+
+<p>Click on a step header to expand/collapse its details.</p>
+
+<pre><code># Reports are in timestamped folders
+reports/20260616_143022_TC-RPM-001/
+├── report.html          ← Open this in a browser
+├── report.json          ← Full structured data
+├── report.junit.xml     ← JUnit for CI
+└── stdout.txt           ← Captured output</code></pre>
+
+<!-- ── JUnit ──────────────────────────────────────────────────────────────── -->
+<h2 id="junit">JUnit XML</h2>
+<p>
+  Each test also generates a <code>report.junit.xml</code> file in the JUnit format.
+  This is used by CI systems (Jenkins, GitLab CI, GitHub Actions) for
+  test result reporting.
+</p>
+<p>
+  Each step maps to a JUnit <code>&lt;testcase&gt;</code>. Assertion failures
+  become <code>&lt;failure&gt;</code> elements. Step errors become <code>&lt;error&gt;</code>
+  elements.
+</p>
+
+<!-- ── Allure ──────────────────────────────────────────────────────────────── -->
+<h2 id="allure">Allure Reports</h2>
+<p>
+  The framework can generate Allure-compatible JSON results for rich
+  CI dashboards with history, trends, and categories.
+</p>
+
+<pre><code># Enable Allure output
+boat test run manifest.json --allure ./allure-results
+
+# View with Allure CLI
+allure serve ./allure-results</code></pre>
+
+<h3>Allure Data Mapping</h3>
+<table>
+  <tr><th>TestReport Field</th><th>Allure Field</th></tr>
+  <tr><td>Verdict</td><td><code>status</code> (passed/failed/broken/skipped)</td></tr>
+  <tr><td>Steps</td><td>Nested <code>steps[]</code></td></tr>
+  <tr><td>Assertions</td><td>Sub-steps with status</td></tr>
+  <tr><td>Preconditions</td><td>Setup steps</td></tr>
+  <tr><td>Traces</td><td><code>attachments[]</code></td></tr>
+  <tr><td>Test group</td><td><code>labels.parentSuite</code></td></tr>
+  <tr><td>Test ID</td><td><code>labels.testId</code></td></tr>
+  <tr><td>Environment</td><td><code>environment.properties</code></td></tr>
+</table>
+
+<!-- ── Report Structure ────────────────────────────────────────────────────── -->
+<h2 id="report-structure">Report Directory Structure</h2>
+<pre><code>reports/
+├── 20260616_143022_TC-RPM-001/       # Each test gets a timestamped folder
+│   ├── report.json                   # Full structured JSON report
+│   ├── report.html                   # Self-contained HTML report
+│   ├── report.junit.xml              # JUnit XML for CI
+│   ├── stdout.txt                    # Test stdout
+│   ├── stderr.txt                    # Test stderr (if any)
+│   ├── allure/                       # Allure results (if enabled)
+│   │   └── TC-RPM-001-result.json
+│   └── rec_*.blf                     # Trace file (if recorder enabled)
+│
+└── 20260616_143030_TC-RPM-002/
+    └── ...</code></pre>
+
+<!-- ── Trace Recording ─────────────────────────────────────────────────────── -->
+<h2 id="trace-recording">Trace Recording</h2>
+<p>
+  The recorder daemon captures raw CAN and Ethernet traffic to files
+  (BLF/ASC/PCAP). Use it when you need to inspect bus traffic after
+  a test run.
+</p>
+
+<pre><code># Start the recorder daemon (separate terminal)
+bash start_ui.sh    # or: python3 ui/recorder.py
+
+# Run tests with trace capture
+boat test run manifest.json --recorder-url http://localhost:8083
+
+# Trace files appear in the report folder
+reports/20260616_143022_TC-RPM-001/
+  └── rec_20260616_143022_abcd.blf</code></pre>
+
+<p>
+  Supported trace formats:
+</p>
+<table>
+  <tr><th>Format</th><th>Extension</th><th>Tool Support</th></tr>
+  <tr><td>BLF</td><td><code>.blf</code></td><td>Vector tools, python-can, Wireshark</td></tr>
+  <tr><td>ASC</td><td><code>.asc</code></td><td>CANalyzer, python-can, Wireshark</td></tr>
+  <tr><td>PCAP</td><td><code>.pcap</code></td><td>Wireshark, tcpdump</td></tr>
+</table>
+
+<div class="tip">
+  To replay a captured trace file through the gateway:
+  <code>boat trace replay traces/rec_*.blf --buses vcan0</code>
+</div>
+
+<!-- ── C++ Tests ───────────────────────────────────────────────────────────── -->
+<h2 id="cpp-tests">C++ Tests</h2>
+<p>
+  For in-process deterministic tests (no gateway required), use the
+  C++ TestHarness. Tests use Catch2 and run without gRPC.
+</p>
+
+<pre><code>#include &lt;boat/test_harness.h&gt;
+
+TEST_CASE("CAN send and capture", "[hil]") {
+    boat::test::TestHarness harness;
+    auto&amp; can1 = harness.AddCanBus("can1");
+
+    {
+        auto step = harness.Step(1, "Send frame");
+        can1.Send(0x100, {0x01, 0xF4});
+        harness.Advance(std::chrono::milliseconds(100));
+
+        auto&amp; mock = harness.MockCan("can1");
+        step.Assert(!mock.written.empty());
+        step.Assert(mock.written[0].can_id == 0x100);
+    }
+
+    harness.Report().Save("report.json");
+}</code></pre>
+
+<p>Add tests to the build with:</p>
+<pre><code>add_boat_test(boat_test_my_test test_my_test.cpp)</code></pre>
+
+<p>Run:</p>
+<pre><code>cmake --build --preset debug --target boat_test_my_test
+./build/debug/src/tests/boat_test_my_test</code></pre>
+
+<!-- ── Best Practices ──────────────────────────────────────────────────────── -->
+<h2 id="best-practices">Best Practices</h2>
+
+<h3>1. Write Hardware-Agnostic Tests</h3>
+<p>
+  Reference buses by logical name (<code>can1</code>, <code>can2</code>),
+  not interface names (<code>vcan0</code>, <code>can0</code>).
+  The environment config maps logical to physical.
+</p>
+
+<h3>2. Always Use Steps</h3>
+<p>
+  Each logical action should be a separate step. Steps with assertions
+  produce structured, readable reports. Without steps, you only get
+  a pass/fail verdict.
+</p>
+
+<h3>3. Load the PDU Database</h3>
+<p>
+  Use <code>harness.load_pdu_database()</code> to enable symbolic
+  signal access. It saves you from manually computing CAN IDs,
+  bit positions, and factor/offset conversions.
+</p>
+
+<h3>4. Keep Tests Independent</h3>
+<p>
+  Each test in a manifest should be self-contained. Tests should not
+  depend on state left by previous tests. Use manifest <code>setup</code>
+  / <code>teardown</code> for shared state.
+</p>
+
+<h3>5. Use Pre-flight Checks</h3>
+<p>
+  Always run <code>--preflight</code> or <code>boat test check-env</code>
+  before a test run to catch configuration issues early.
+</p>
+
+<h3>6. Version Your Tests</h3>
+<p>
+  Set the <code>version</code> field in your manifest and
+  <code>version</code> in your test case metadata. This helps
+  track changes in reports.
+</p>
+
+<h3>7. Review the HTML Report</h3>
+<p>
+  The HTML report shows everything: steps, assertions, stimuli,
+  observations, traces. Use it for debugging and as evidence
+  of test results.
+</p>
+
+<h3>8. Run in CI with Virtual Interfaces</h3>
+<p>
+  Use <code>env_virtual.json</code> for CI. It only needs
+  <code>vcan0</code>, <code>vcan1</code>, and <code>veth0</code>
+  — no hardware required.
+</p>
+
+<div class="tip">
+  Write test scripts as regular Python scripts, then reference them
+  in a manifest for batch execution with report generation.
+</div>
+
+<!-- ── Footer ──────────────────────────────────────────────────────────────── -->
+<p style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem;">
+  BoAt Test Framework — How-To Guide for Test Engineers<br>
+  Generated from <code>boat-platform/sdk/python/boat/test/</code>
+</p>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/common.proto";
+
+message Simulation {
+  string simulation_id = 1;
+  string scenario_id = 2;
+  SimulationState state = 3;
+  uint64 tick = 4;
+}
+
+message CreateSimulationRequest { string scenario_id = 1; }
+message StartSimulationRequest { string simulation_id = 1; }
+message PauseSimulationRequest { string simulation_id = 1; }
+message StepSimulationRequest { string simulation_id = 1; uint32 ticks = 2; }
+message ResetSimulationRequest { string simulation_id = 1; }
+message StopSimulationRequest { string simulation_id = 1; }
+message GetSimulationStateRequest { string simulation_id = 1; }
+message ListSimulationsRequest { PaginationRequest page = 1; }
+
+message SimulationResponse { Simulation simulation = 1; ErrorDetail error = 2; }
+message ListSimulationsResponse {
+  repeated Simulation simulations = 1;
+  PaginationResponse page = 2;
+}
+
+service SimulationService {
+  rpc CreateSimulation(CreateSimulationRequest) returns (SimulationResponse);
+  rpc StartSimulation(StartSimulationRequest) returns (SimulationResponse);
+  rpc PauseSimulation(PauseSimulationRequest) returns (SimulationResponse);
+  rpc StepSimulation(StepSimulationRequest) returns (SimulationResponse);
+  rpc ResetSimulation(ResetSimulationRequest) returns (SimulationResponse);
+  rpc StopSimulation(StopSimulationRequest) returns (SimulationResponse);
+  rpc GetSimulationState(GetSimulationStateRequest) returns (SimulationResponse);
+  rpc WatchSimulation(GetSimulationStateRequest) returns (stream SimulationResponse);
+  rpc ListSimulations(ListSimulationsRequest) returns (ListSimulationsResponse);
+}

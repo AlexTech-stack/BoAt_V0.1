@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "report.schema.json",
+  "title": "BoAt Test Report",
+  "description": "Structured output of a single test case execution, including preconditions, steps, assertions, and trace references.",
+  "type": "object",
+  "required": ["meta", "test", "execution", "steps", "verdict"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["report_schema_version", "generated_at", "generator"],
+      "additionalProperties": false,
+      "properties": {
+        "report_schema_version": { "type": "string" },
+        "generated_at":          { "type": "string", "format": "date-time" },
+        "generator":             { "type": "string" }
+      }
+    },
+    "test": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id":          { "type": "string" },
+        "name":        { "type": "string" },
+        "group":       { "type": "string" },
+        "file":        { "type": "string" },
+        "version":     { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "description": "Snapshot of the environment config used for this run"
+    },
+    "execution": {
+      "type": "object",
+      "required": ["started_at", "verdict"],
+      "additionalProperties": false,
+      "properties": {
+        "runner_hostname":    { "type": "string" },
+        "runner_user":        { "type": "string" },
+        "ci_build_id":        { "type": "string" },
+        "ci_job_url":         { "type": "string" },
+        "gateway_version":    { "type": "string" },
+        "dut_version":        { "type": "string" },
+        "boat_version":       { "type": "string" },
+        "test_script_version":{ "type": "string" },
+        "started_at":         { "type": "string", "format": "date-time" },
+        "finished_at":        { "type": "string", "format": "date-time" },
+        "duration_ms":        { "type": "integer", "minimum": 0 }
+      }
+    },
+    "preconditions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/PreconditionRecord" }
+    },
+    "steps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/StepRecord" }
+    },
+    "traces": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/TraceRef" }
+    },
+    "attachments": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Attachment" }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "ERROR", "SKIPPED"]
+    },
+    "summary": { "type": "string" }
+  },
+  "$defs": {
+    "PreconditionRecord": {
+      "type": "object",
+      "required": ["id", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "id":         { "type": "integer", "minimum": 1 },
+        "action":     { "type": "string" },
+        "params":     { "type": "object" },
+        "result":     { "type": "string" },
+        "duration_ms":{ "type": "integer", "minimum": 0 },
+        "error":      { "type": "string" }
+      }
+    },
+    "StepRecord": {
+      "type": "object",
+      "required": ["id", "name", "verdict"],
+      "additionalProperties": false,
+      "properties": {
+        "id":          { "type": "integer", "minimum": 1 },
+        "name":        { "type": "string" },
+        "description": { "type": "string" },
+        "started_at":  { "type": "string", "format": "date-time" },
+        "duration_ms": { "type": "integer", "minimum": 0 },
+        "verdict":     { "type": "string", "enum": ["PASS", "FAIL", "ERROR", "SKIPPED"] },
+        "stimuli":     { "type": "array", "items": { "$ref": "#/$defs/StimulusRecord" } },
+        "observations":{ "type": "array", "items": { "$ref": "#/$defs/ObservationRecord" } },
+        "expected":    { "type": "array", "items": { "$ref": "#/$defs/ExpectedRecord" } },
+        "assertions":  { "type": "array", "items": { "$ref": "#/$defs/AssertionRecord" } },
+        "trace_refs":  { "type": "array", "items": { "type": "string" } },
+        "attachments": { "type": "array", "items": { "$ref": "#/$defs/Attachment" } }
+      }
+    },
+    "StimulusRecord": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type":        { "type": "string", "enum": ["can", "eth", "pdu", "signal"] },
+        "bus":         { "type": "string" },
+        "can_id":      { "type": "integer", "minimum": 0 },
+        "data":        { "type": "string" },
+        "dlc":         { "type": "integer", "minimum": 0 },
+        "direction":   { "type": "string", "enum": ["TX", "RX"], "default": "TX" },
+        "timestamp_ns":{ "type": "integer", "minimum": 0 },
+        "step_sim_tick": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ObservationRecord": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type":        { "type": "string", "enum": ["can", "eth", "pdu", "signal"] },
+        "bus":         { "type": "string" },
+        "can_id":      { "type": "integer", "minimum": 0 },
+        "data":        { "type": "string" },
+        "dlc":         { "type": "integer", "minimum": 0 },
+        "direction":   { "type": "string", "enum": ["TX", "RX"], "default": "RX" },
+        "timestamp_ns":{ "type": "integer", "minimum": 0 },
+        "step_sim_tick": { "type": "integer", "minimum": 0 },
+        "latency_us":  { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ExpectedRecord": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type":        { "type": "string", "enum": ["can", "eth", "pdu", "signal"] },
+        "bus":         { "type": "string" },
+        "can_id":      { "type": "integer", "minimum": 0 },
+        "data":        { "type": "string" },
+        "data_mask":   { "type": "string" },
+        "timeout_ms":  { "type": "integer", "minimum": 1 }
+      }
+    },
+    "AssertionRecord": {
+      "type": "object",
+      "required": ["expression", "expected", "actual", "result"],
+      "additionalProperties": false,
+      "properties": {
+        "expression": { "type": "string" },
+        "expected":   { "type": "string" },
+        "actual":     { "type": "string" },
+        "result":     { "type": "string", "enum": ["PASS", "FAIL", "ERROR"] }
+      }
+    },
+    "TraceRef": {
+      "type": "object",
+      "required": ["id", "path", "format"],
+      "additionalProperties": false,
+      "properties": {
+        "id":             { "type": "string" },
+        "path":           { "type": "string" },
+        "format":         { "type": "string", "enum": ["blf", "asc", "pcap", "binary"] },
+        "size_bytes":     { "type": "integer", "minimum": 0 },
+        "event_count":    { "type": "integer", "minimum": 0 },
+        "checksum_sha256":{ "type": "string" }
+      }
+    },
+    "Attachment": {
+      "type": "object",
+      "required": ["name", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "mime": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package boat.v1;
+
+// Transport layer a PDU is routed over.
+enum PduTransport {
+  PDU_TRANSPORT_UNSPECIFIED = 0;
+  PDU_TRANSPORT_CAN         = 1;
+  PDU_TRANSPORT_ETHERNET    = 2;
+}
+
+// Transmission schedule for automatic PDU sending.
+enum SendType {
+  SEND_TYPE_NONE       = 0;
+  SEND_TYPE_CYCLIC     = 1;
+  SEND_TYPE_ON_CHANGE  = 2;
+  SEND_TYPE_MIXED      = 3;
+}
+
+message PduSchedule {
+  SendType send_type   = 1;
+  uint32   cycle_ms    = 2;  // base period in ms
+  uint32   fast_ms     = 3;  // fast period for n-times repetitions in ms
+  uint32   repetitions = 4;  // number of fast repetitions per change event
+}
+
+// Routing rule: maps a PDU ID to a physical interface and transport.
+message PduRoute {
+  uint32       pdu_id    = 1;  // AUTOSAR-style 32-bit PDU identifier
+  PduTransport transport = 2;
+  string       iface     = 3;  // CAN iface (e.g. "vcan0") or Ethernet iface (e.g. "eth0")
+  uint32       vlan_id   = 4;  // 802.1Q VID — 0 = untagged (Ethernet only)
+  uint32       can_id    = 5;  // override CAN frame ID — 0 = use pdu_id (CAN only)
+  uint32       ethertype = 6;  // used only when dst_ip is empty (sim-only, default 0x88B5)
+
+  // IP/UDP/IpduM transport — active when dst_ip is non-empty.
+  // EtherType is set automatically: 0x0800 (IPv4) or 0x86DD (IPv6).
+  bytes  src_ip   = 7;  // 4 bytes = IPv4, 16 bytes = IPv6
+  bytes  dst_ip   = 8;  // 4 bytes = IPv4, 16 bytes = IPv6
+  uint32 src_port = 9;
+  uint32 dst_port = 10;
+  uint32 ttl      = 11; // IPv4 TTL / IPv6 Hop Limit (default 64)
+
+  PduSchedule schedule = 12;  // optional — when absent, SendType::kNone
+}
+
+// A PDU frame as routed through the platform.
+message PduFrame {
+  uint32       pdu_id       = 1;
+  bytes        payload      = 2;
+  uint64       timestamp_ns = 3;
+  PduTransport source       = 4;  // transport the frame arrived on
+  string       iface        = 5;  // interface the frame arrived on
+}
+
+message SendPduRequest         { PduFrame pdu = 1; }
+message SendPduResponse        { bool accepted = 1; }
+
+// pdu_ids: empty = subscribe to all PDUs.
+message SubscribePdusRequest   { repeated uint32 pdu_ids = 1; }
+
+message ConfigureRouteRequest  { PduRoute route = 1; }
+message ConfigureRouteResponse { bool ok = 1; }
+
+message ListRoutesRequest  {}
+message ListRoutesResponse { repeated PduRoute routes = 1; }
+
+// Groups several PDU IDs onto a shared Ethernet transport so they are
+// multiplexed into a single IpduM container frame on every send.
+message PduContainerDef {
+  uint32          container_id = 1;  // arbitrary unique ID chosen by the caller
+  string          iface        = 2;
+  bytes           src_ip       = 3;  // 4 bytes IPv4 or 16 bytes IPv6
+  bytes           dst_ip       = 4;
+  uint32          src_port     = 5;
+  uint32          dst_port     = 6;
+  uint32          ttl          = 7;  // IPv4 TTL / IPv6 Hop Limit (default 64)
+  uint32          vlan_id      = 8;
+  repeated uint32 pdu_ids      = 9;  // PDU IDs that share this container
+}
+
+message ConfigureContainerRequest  { PduContainerDef container = 1; }
+message ConfigureContainerResponse { bool ok = 1; }
+
+// I-PDU Group — a set of PDUs that can be enabled/disabled at runtime.
+message PduGroup {
+  uint32       group_id = 1;
+  string       name     = 2;
+  repeated uint32 pdu_ids = 3;
+  bool         enabled  = 4;
+}
+
+message ConfigureGroupRequest  { PduGroup group = 1; }
+message ConfigureGroupResponse { bool ok = 1; }
+
+message EnableGroupRequest  { uint32 group_id = 1; }
+message EnableGroupResponse { bool ok = 1; }
+
+message DisableGroupRequest  { uint32 group_id = 1; }
+message DisableGroupResponse { bool ok = 1; }
+
+message ListGroupsRequest  {}
+message ListGroupsResponse { repeated PduGroup groups = 1; }
+
+message RemoveRouteRequest  { uint32 pdu_id = 1; }
+message RemoveRouteResponse { bool ok = 1; }
+
+service PduService {
+  rpc SendPdu(SendPduRequest)                       returns (SendPduResponse);
+  rpc SubscribePdus(SubscribePdusRequest)            returns (stream PduFrame);
+  rpc ConfigureRoute(ConfigureRouteRequest)          returns (ConfigureRouteResponse);
+  rpc ListRoutes(ListRoutesRequest)                  returns (ListRoutesResponse);
+  rpc ConfigureContainer(ConfigureContainerRequest)  returns (ConfigureContainerResponse);
+  rpc ConfigureGroup(ConfigureGroupRequest)           returns (ConfigureGroupResponse);
+  rpc EnableGroup(EnableGroupRequest)                 returns (EnableGroupResponse);
+  rpc DisableGroup(DisableGroupRequest)               returns (DisableGroupResponse);
+  rpc ListGroups(ListGroupsRequest)                   returns (ListGroupsResponse);
+  rpc RemoveRoute(RemoveRouteRequest)                 returns (RemoveRouteResponse);
+}

@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pdu_db.schema.json",
+  "title": "BoAt PDU Database",
+  "description": "Database of CAN, CANFD and Ethernet PDU/message definitions with signal routing table. DbId values must be globally unique across the entire file.",
+  "type": "object",
+  "required": ["schema_version", "messages", "signal_routes"],
+  "additionalProperties": false,
+  "properties": {
+
+    "schema_version": { "type": "string" },
+
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "DbId", "MessageName", "Bus", "BusType",
+          "MessageType", "Direction", "RoutingType",
+          "TargetDbIds", "SourceDbId",
+          "isE2E", "SendType", "CycleTime", "CycleTimeFast", "NrOfRepetitions",
+          "signalcount", "signals"
+        ],
+        "additionalProperties": false,
+        "properties": {
+
+          "Comment":     { "type": "string", "description": "Optional human-readable comment about the message." },
+          "Node":        { "type": "string", "description": "Optional name of the ECU node that transmits this message (from DBC sender field)." },
+          "DbId":        { "type": "integer", "minimum": 0 },
+          "MessageName": { "type": "string" },
+          "Bus":         { "type": "string", "description": "Symbolic interface name" },
+          "BusType":     { "type": "string", "enum": ["CAN", "CANFD", "ETH", "ETH_PDU"] },
+          "MessageType": { "type": "integer", "description": "Reserved for future use" },
+
+          "Direction":   { "type": "integer", "enum": [0, 1],
+                           "description": "0=Source (first seen on this bus)  1=Routed (origin on another bus)" },
+          "RoutingType": { "type": "integer", "enum": [0, 1, 2],
+                           "description": "0=Source  1=MessageRouting (full frame)  2=SignalRouting (individual signals)" },
+
+          "TargetDbIds": {
+            "description": "DbIds of messages this source is routed to. Null when Direction=1 or not applicable.",
+            "oneOf": [
+              { "type": "array", "items": { "type": "integer" }, "minItems": 1 },
+              { "type": "null" }
+            ]
+          },
+          "SourceDbId": {
+            "description": "DbId of the origin message. Null when Direction=0 or not applicable.",
+            "oneOf": [
+              { "type": "integer" },
+              { "type": "null" }
+            ]
+          },
+
+          "isE2E": {
+            "description": "AUTOSAR E2E profile number (2, 4, 5, 7 …) or 0 if no E2E protection.",
+            "oneOf": [
+              { "type": "integer", "minimum": 0 },
+              { "type": "boolean", "const": false }
+            ]
+          },
+
+          "SendType": { "type": "string", "enum": ["Cyclic", "OnChange", "Spontaneous"] },
+          "CycleTime":     { "type": "integer", "minimum": 0, "description": "Base cycle time in ms. 0 if not cyclic." },
+          "CycleTimeFast": { "type": "integer", "minimum": 0, "description": "Fast cycle time in ms. 0 = no fast cycle." },
+          "NrOfRepetitions": { "type": "integer", "minimum": 0, "description": "Number of fast-cycle repetitions per change event." },
+
+          "signalcount": { "type": "integer", "minimum": 0 },
+          "signals": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/Signal" }
+          },
+
+          "Identifier": { "type": "integer", "minimum": 0,
+                          "description": "CAN/CANFD frame identifier (11-bit or 29-bit depending on FrameType)." },
+          "FrameType":  { "type": "integer", "enum": [0, 1],
+                          "description": "0=Standard (11-bit)  1=Extended (29-bit)" },
+          "Length":     { "type": "integer", "minimum": 0,
+                          "description": "Frame/PDU payload length in bytes." },
+          "BRS":        { "type": "boolean",
+                          "description": "CANFD Bit Rate Switch. True = data phase uses fast bitrate." },
+
+          "EtherType":  { "type": "integer", "minimum": 0, "maximum": 65535,
+                          "description": "Ethernet EtherType. 2048=0x0800 IPv4, 34525=0x86DD IPv6, 34997=0x88B5 sim-only." },
+          "VlanId":     { "type": "integer", "minimum": 0, "maximum": 4095 },
+          "SrcMAC":     { "type": "string", "description": "Source MAC address (colon-separated hex). Empty = OS resolves." },
+          "DstMAC":     { "type": "string", "description": "Destination MAC address. Empty = OS/ARP resolves." },
+          "SrcIP":      { "type": "string", "description": "Source IPv4 or IPv6 address as string." },
+          "DstIP":      { "type": "string", "description": "Destination IPv4 or IPv6 address as string." },
+          "SrcPort":    { "type": "integer", "minimum": 0, "maximum": 65535 },
+          "DstPort":    { "type": "integer", "minimum": 0, "maximum": 65535 },
+          "TTL":        { "type": "integer", "minimum": 0, "maximum": 255,
+                          "description": "IPv4 TTL / IPv6 Hop Limit." },
+          "IpduMEntries": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "description": "DbIds of ETH_PDU entries carried inside this IpduM container. BusType=ETH only."
+          },
+
+          "PduId":        { "type": "integer", "minimum": 0,
+                            "description": "32-bit AUTOSAR PDU ID. BusType=ETH_PDU only." },
+          "ContainerDbId":{ "type": "integer",
+                            "description": "DbId of the parent ETH container. BusType=ETH_PDU only." }
+        }
+      }
+    },
+
+    "signal_routes": {
+      "type": "array",
+      "description": "Cross-bus signal mappings. Used when RoutingType=2. A signal is addressed as DbId.SignalId.",
+      "items": {
+        "type": "object",
+        "required": ["SrcDbId", "SrcSignalId", "DstDbId", "DstSignalId"],
+        "additionalProperties": false,
+        "properties": {
+          "SrcDbId":     { "type": "integer" },
+          "SrcSignalId": { "type": "integer" },
+          "DstDbId":     { "type": "integer" },
+          "DstSignalId": { "type": "integer" }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "Signal": {
+      "type": "object",
+      "required": [
+        "id", "SignalName", "Length", "StartPos", "ByteOrder", "ValueType",
+        "SigSendType", "Repetitions", "InitValue",
+        "Factor", "Offset", "Min", "Max", "Unit", "EnumValues"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id":          { "type": "integer", "minimum": 1,
+                         "description": "Signal ID, unique within the message. Full address: DbId.id" },
+        "SignalName":  { "type": "string" },
+        "Comment":     { "type": "string", "description": "Optional human-readable comment about the signal (from DBC CM_ lines)." },
+        "Length":      { "type": "integer", "minimum": 1, "description": "Signal length in bits." },
+        "StartPos":    { "type": "integer", "minimum": 0, "description": "Start bit position (LSB, 0-indexed)." },
+        "ByteOrder":   { "type": "integer", "enum": [0, 1],
+                         "description": "0=Intel/Little-endian  1=Motorola/Big-endian" },
+        "ValueType":   { "type": "string", "enum": ["Unsigned", "Signed", "Float", "Bool"] },
+        "IsMuxor":     { "type": "boolean", "default": false,
+                         "description": "True if this signal is the multiplexor selector for the message. Exactly one signal per message should have IsMuxor=true. The selector value determines which MuxValue group is active." },
+        "MuxValue":    {
+                         "description": "Multiplexed signal group value. Null (or absent) = static signal, always present. An integer = this signal is only active when the multiplexor selector equals this value. Signals with different MuxValues may share the same StartPos/Length. Signals with the same MuxValue must not overlap.",
+                         "oneOf": [
+                           { "type": "integer", "minimum": 0, "maximum": 65535 },
+                           { "type": "null" }
+                         ]
+                       },
+        "SigSendType": { "type": "boolean",
+                         "description": "True = a value change on this signal triggers an OnChange or fast-cycle transmission." },
+        "Repetitions": { "type": "integer", "minimum": 0 },
+        "InitValue":   { "type": "number" },
+        "Factor":      { "type": "number", "description": "Physical = raw * Factor + Offset" },
+        "Offset":      { "type": "number" },
+        "Min":         { "type": "number", "description": "Minimum physical value." },
+        "Max":         { "type": "number", "description": "Maximum physical value." },
+        "Unit":        { "type": "string", "description": "Engineering unit, e.g. rpm, V, degC. Empty string if dimensionless." },
+        "EnumValues":  {
+          "description": "Discrete value mapping from raw integer to label. Null if not applicable.",
+          "oneOf": [
+            { "type": "object", "additionalProperties": { "type": "string" } },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

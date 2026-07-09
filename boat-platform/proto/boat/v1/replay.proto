@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/common.proto";
+
+enum ReplaySpeed {
+  REPLAY_SPEED_REAL_TIME = 0;
+  REPLAY_SPEED_ACCELERATED = 1;
+  REPLAY_SPEED_STEP_BY_STEP = 2;
+}
+
+message StartReplayRequest {
+  string trace_id = 1;
+  string simulation_id = 2;
+  ReplaySpeed speed = 3;
+  double speed_multiplier = 4;
+  string eth_iface = 5;
+  map<string, string> mac_map = 6;
+  int32 loop_delay_ms = 7;  // ms gap between runs; 0 or unset = no loop
+  repeated string buses = 8;  // CAN interfaces for channel mapping (ch1->buses[0], ...);
+                               // empty = fall back to "vcan0" for every channel.
+}
+message SeekReplayRequest { string replay_id = 1; uint64 tick = 2; }
+message StreamReplayRequest { string replay_id = 1; }
+message PauseReplayRequest { string replay_id = 1; }
+message ResumeReplayRequest { string replay_id = 1; }
+message StopReplayRequest { string replay_id = 1; }
+
+message ImportTraceDataRequest {
+  string trace_id = 1;
+  string format = 2;
+  bytes data = 3;
+}
+
+message StartReplayFromEventsRequest {
+  string simulation_id = 1;
+  string signal_id = 2;
+  uint64 tick_min = 3;
+  uint64 tick_max = 4;
+  ReplaySpeed speed = 5;
+  double speed_multiplier = 6;
+}
+
+message ReplayEvent {
+  string replay_id = 1;
+  uint64 tick = 2;
+  bytes payload = 3;
+}
+
+message ReplayControlResponse {
+  bool accepted = 1;
+  ErrorDetail error = 2;
+  string replay_id = 3;
+}
+
+service ReplayService {
+  rpc StartReplay(StartReplayRequest) returns (ReplayControlResponse);
+  rpc SeekReplay(SeekReplayRequest) returns (ReplayControlResponse);
+  rpc StreamReplay(StreamReplayRequest) returns (stream ReplayEvent);
+  rpc PauseReplay(PauseReplayRequest) returns (ReplayControlResponse);
+  rpc ResumeReplay(ResumeReplayRequest) returns (ReplayControlResponse);
+  rpc StopReplay(StopReplayRequest) returns (ReplayControlResponse);
+  rpc ImportTraceData(ImportTraceDataRequest) returns (ReplayControlResponse);
+  rpc StartReplayFromEvents(StartReplayFromEventsRequest) returns (ReplayControlResponse);
+}

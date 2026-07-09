@@ -1,0 +1,12 @@
+set(CPACK_PACKAGE_NAME "boat-platform")
+set(CPACK_PACKAGE_VENDOR "boat-platform")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_CONTACT "maintainers@boat.local")
+set(CPACK_GENERATOR "TGZ;DEB;RPM")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "boat-platform maintainers")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6, libc6")
+set(CPACK_RPM_PACKAGE_LICENSE "Apache-2.0")
+set(CPACK_RPM_PACKAGE_GROUP "Applications/Engineering")
+
+include(CPack)

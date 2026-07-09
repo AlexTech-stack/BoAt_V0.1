@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package boat.v1;
+
+message GetMetricsRequest { string simulation_id = 1; }
+message StreamMetricsRequest { string simulation_id = 1; }
+
+message MetricPoint {
+  string name = 1;
+  double value = 2;
+  uint64 tick = 3;
+}
+
+message MetricsResponse { repeated MetricPoint points = 1; }
+
+service MetricsService {
+  rpc GetMetrics(GetMetricsRequest) returns (MetricsResponse);
+  rpc StreamMetrics(StreamMetricsRequest) returns (stream MetricPoint);
+}

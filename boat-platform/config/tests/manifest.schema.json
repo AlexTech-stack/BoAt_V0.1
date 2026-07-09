@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "manifest.schema.json",
+  "title": "BoAt Test Suite Manifest",
+  "description": "Defines a test suite: setup/teardown actions, list of test cases, and environment config reference.",
+  "type": "object",
+  "required": ["schema_version", "name", "tests"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version":     { "type": "string" },
+    "name":               { "type": "string" },
+    "version":            { "type": "string" },
+    "description":        { "type": "string" },
+    "environment_config": { "type": "string" },
+    "setup":              { "type": "array", "items": { "$ref": "#/$defs/Action" } },
+    "teardown":           { "type": "array", "items": { "$ref": "#/$defs/Action" } },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "file"],
+        "additionalProperties": false,
+        "properties": {
+          "id":         { "type": "string" },
+          "name":       { "type": "string" },
+          "file":       { "type": "string" },
+          "description": { "type": "string" },
+          "timeout_s":  { "type": "integer", "minimum": 1, "default": 60 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Action": {
+      "type": "object",
+      "required": ["action", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "action": { "type": "string" },
+        "params": { "type": "object" }
+      }
+    }
+  }
+}

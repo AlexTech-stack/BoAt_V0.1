@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package boat.v1;
+
+/* ── Metadata per bus type ──────────────────────────────────────────── */
+
+message CanMetadata {
+  uint32 can_id  = 1;
+  uint32 dlc     = 2;  // ISO-encoded DLC (0-15; 0-8 direct, 9=12B, 10=16B, …)
+  uint32 flags   = 3;  // CANFD_BRS=0x01, CANFD_ESI=0x02, CANFD_FDF=0x04
+  uint32 channel = 4;  // 1-based trace channel; 0 = unknown/unset.
+                        // Import stores the original channel instead of a
+                        // baked interface name, so replay can map it to any
+                        // interface via ReplayConfig.buses without re-import.
+}
+
+message EthMetadata {
+  bytes  dst_mac    = 1;  // exactly 6 bytes
+  bytes  src_mac    = 2;  // exactly 6 bytes
+  uint32 ethertype  = 3;  // e.g. 0x0800 IPv4, 0x86DD IPv6
+  uint32 vlan_id    = 4;  // 0 = untagged
+  bytes  src_ip     = 5;  // 4 bytes (v4) or 16 bytes (v6)
+  bytes  dst_ip     = 6;  // same
+  uint32 ip_version = 7;  // 4 or 6
+}
+
+message TcpMetadata {
+  bytes  src_ip     = 1;  // 4 bytes (v4) or 16 bytes (v6)
+  bytes  dst_ip     = 2;  // same
+  uint32 ip_version = 3;  // 4 or 6
+  uint32 src_port   = 4;
+  uint32 dst_port   = 5;
+  int32  conn_id    = 6;  // -1 = new, -2 = close, >= 0 = existing
+}
+
+message PduMetadata {
+  uint32 pdu_id = 1;
+}
+
+
+/* ── Unified Frame ──────────────────────────────────────────────────── */
+
+message Frame {
+  enum BusType {
+    UNSPECIFIED = 0;
+    CAN         = 1;
+    CANFD       = 2;
+    ETHERNET    = 3;
+    TCP         = 4;
+    PDU         = 5;
+  }
+
+  BusType bus_type     = 1;
+  string  iface        = 2;  // interface name
+  uint64  timestamp_ns = 3;
+  bytes   payload      = 4;
+
+  oneof metadata {
+    CanMetadata   can  = 10;
+    EthMetadata   eth  = 11;
+    TcpMetadata   tcp  = 12;
+    PduMetadata   pdu  = 13;
+  }
+}
+
+
+/* ── FrameService — unified send/subscribe endpoint ─────────────────── */
+
+message SendFrameRequest  { Frame frame = 1; }
+message SendFrameResponse { bool accepted = 1; }
+
+message SubscribeFramesRequest {
+  repeated Frame.BusType bus_types = 1;  // empty = all
+  string iface_filter = 2;              // empty = all
+}
+
+service FrameService {
+  rpc SendFrame(SendFrameRequest) returns (SendFrameResponse);
+  rpc SubscribeFrames(SubscribeFramesRequest) returns (stream Frame);
+}

@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package boat.v1;
+
+// A single Ethernet frame as seen on the wire (or virtual interface).
+message EthernetFrame {
+  string iface        = 1;  // interface name, e.g. "veth0"
+  bytes  src_mac      = 2;  // 6 bytes; may be empty for virtual frames
+  bytes  dst_mac      = 3;  // 6 bytes; may be empty (broadcast implied)
+  uint32 ethertype    = 4;  // inner ethertype after VLAN strip; e.g. 0x0800=IPv4, 0x86DD=IPv6
+  bytes  payload      = 5;  // frame payload (up to 1500 bytes for standard Ethernet)
+  uint64 timestamp_ns = 6;  // wall-clock nanoseconds; set by gateway if 0
+  uint32 vlan_id      = 7;  // 802.1Q VID: 0 = untagged, 1-4094 = tagged
+  uint32 vlan_pcp     = 8;  // 802.1Q Priority Code Point (0-7)
+  bytes  src_ip       = 9;  // 4 bytes = IPv4, 16 bytes = IPv6, empty = non-IP
+  bytes  dst_ip       = 10; // 4 bytes = IPv4, 16 bytes = IPv6, empty = non-IP
+}
+
+message SendEthernetFrameRequest  { EthernetFrame frame = 1; }
+message SendEthernetFrameResponse { bool accepted = 1; }
+
+message SubscribeEthernetFramesRequest {
+  string iface      = 1;  // empty = all registered interfaces
+  uint32 ethertype  = 2;  // 0 = all ethertypes
+}
+
+message ListEthernetInterfacesRequest  {}
+message ListEthernetInterfacesResponse { repeated string ifaces = 1; }
+
+service EthernetService {
+  rpc SendFrame(SendEthernetFrameRequest)             returns (SendEthernetFrameResponse);
+  rpc SubscribeFrames(SubscribeEthernetFramesRequest) returns (stream EthernetFrame);
+  rpc ListInterfaces(ListEthernetInterfacesRequest)   returns (ListEthernetInterfacesResponse);
+}

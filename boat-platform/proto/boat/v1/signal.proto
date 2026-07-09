@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/common.proto";
+
+message SignalValue {
+  string name = 1;
+  uint64 tick = 2;
+  oneof value {
+    double number_value = 3;
+    int64 int_value = 4;
+    string string_value = 5;
+    bool bool_value = 6;
+  }
+}
+
+message InjectSignalRequest { string simulation_id = 1; SignalValue signal = 2; }
+message SubscribeSignalsRequest { string simulation_id = 1; repeated string names = 2; }
+message GetSignalHistoryRequest {
+  string simulation_id = 1;
+  string name = 2;
+  PaginationRequest page = 3;
+}
+message SignalHistoryResponse {
+  repeated SignalValue values = 1;
+  PaginationResponse page = 2;
+}
+message InjectSignalResponse { bool accepted = 1; ErrorDetail error = 2; }
+
+service SignalService {
+  rpc InjectSignal(InjectSignalRequest) returns (InjectSignalResponse);
+  rpc SubscribeSignals(SubscribeSignalsRequest) returns (stream SignalValue);
+  rpc GetSignalHistory(GetSignalHistoryRequest) returns (SignalHistoryResponse);
+}

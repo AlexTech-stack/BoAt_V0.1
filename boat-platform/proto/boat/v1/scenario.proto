@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/common.proto";
+
+message Scenario {
+  string scenario_id = 1;
+  string name = 2;
+  string content = 3;
+}
+
+message CreateScenarioRequest { Scenario scenario = 1; }
+message GetScenarioRequest { string scenario_id = 1; }
+message ListScenariosRequest { PaginationRequest page = 1; }
+message ValidateScenarioRequest { string content = 1; }
+message DeleteScenarioRequest { string scenario_id = 1; }
+
+message ScenarioResponse { Scenario scenario = 1; ErrorDetail error = 2; }
+message ListScenariosResponse { repeated Scenario scenarios = 1; PaginationResponse page = 2; }
+message ValidateScenarioResponse { bool valid = 1; repeated string issues = 2; }
+message DeleteScenarioResponse { bool deleted = 1; ErrorDetail error = 2; }
+
+service ScenarioService {
+  rpc CreateScenario(CreateScenarioRequest) returns (ScenarioResponse);
+  rpc GetScenario(GetScenarioRequest) returns (ScenarioResponse);
+  rpc ListScenarios(ListScenariosRequest) returns (ListScenariosResponse);
+  rpc ValidateScenario(ValidateScenarioRequest) returns (ValidateScenarioResponse);
+  rpc DeleteScenario(DeleteScenarioRequest) returns (DeleteScenarioResponse);
+}

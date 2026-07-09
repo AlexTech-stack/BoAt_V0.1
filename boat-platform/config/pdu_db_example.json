@@ -1,0 +1,247 @@
+{
+  "schema_version": "1.0",
+
+  "messages": [
+
+    {
+      "DbId": 15,
+      "MessageName": "Motor_1",
+      "Bus": "Motor_CAN",
+      "BusType": "CAN",
+      "MessageType": 0,
+      "Direction": 0,
+      "RoutingType": 2,
+      "TargetDbIds": [20, 31],
+      "SourceDbId": null,
+      "isE2E": 0,
+      "SendType": "Cyclic",
+      "CycleTime": 20,
+      "CycleTimeFast": 5,
+      "NrOfRepetitions": 3,
+      "Identifier": 123,
+      "FrameType": 0,
+      "Length": 8,
+      "BRS": false,
+      "signalcount": 2,
+      "signals": [
+        {
+          "id": 1,
+          "SignalName": "Clamp15",
+          "Length": 2,
+          "StartPos": 12,
+          "ByteOrder": 0,
+          "ValueType": "Unsigned",
+          "SigSendType": false,
+          "Repetitions": 0,
+          "InitValue": 0,
+          "Factor": 1.0,
+          "Offset": 0.0,
+          "Min": 0.0,
+          "Max": 3.0,
+          "Unit": "",
+          "EnumValues": { "0": "Off", "1": "On", "2": "Error", "3": "NotAvailable" }
+        },
+        {
+          "id": 2,
+          "SignalName": "MotorSpeed",
+          "Length": 16,
+          "StartPos": 0,
+          "ByteOrder": 0,
+          "ValueType": "Unsigned",
+          "SigSendType": true,
+          "Repetitions": 3,
+          "InitValue": 0,
+          "Factor": 0.5,
+          "Offset": 0.0,
+          "Min": 0.0,
+          "Max": 32767.5,
+          "Unit": "rpm",
+          "EnumValues": null
+        }
+      ]
+    },
+
+    {
+      "DbId": 20,
+      "MessageName": "Motor_1_GW",
+      "Bus": "Body_CANFD",
+      "BusType": "CANFD",
+      "MessageType": 0,
+      "Direction": 1,
+      "RoutingType": 1,
+      "TargetDbIds": null,
+      "SourceDbId": 15,
+      "isE2E": 4,
+      "SendType": "Cyclic",
+      "CycleTime": 20,
+      "CycleTimeFast": 0,
+      "NrOfRepetitions": 0,
+      "Identifier": 456,
+      "FrameType": 1,
+      "Length": 16,
+      "BRS": true,
+      "signalcount": 2,
+      "signals": [
+        {
+          "id": 1,
+          "SignalName": "Clamp15",
+          "Length": 2,
+          "StartPos": 12,
+          "ByteOrder": 0,
+          "ValueType": "Unsigned",
+          "SigSendType": false,
+          "Repetitions": 0,
+          "InitValue": 0,
+          "Factor": 1.0,
+          "Offset": 0.0,
+          "Min": 0.0,
+          "Max": 3.0,
+          "Unit": "",
+          "EnumValues": { "0": "Off", "1": "On", "2": "Error", "3": "NotAvailable" }
+        },
+        {
+          "id": 2,
+          "SignalName": "MotorSpeed",
+          "Length": 16,
+          "StartPos": 0,
+          "ByteOrder": 0,
+          "ValueType": "Unsigned",
+          "SigSendType": true,
+          "Repetitions": 3,
+          "InitValue": 0,
+          "Factor": 0.5,
+          "Offset": 0.0,
+          "Min": 0.0,
+          "Max": 32767.5,
+          "Unit": "rpm",
+          "EnumValues": null
+        }
+      ]
+    },
+
+    {
+      "DbId": 30,
+      "MessageName": "Motor_PDU_Container",
+      "Bus": "ETH_Backbone",
+      "BusType": "ETH",
+      "MessageType": 0,
+      "Direction": 0,
+      "RoutingType": 0,
+      "TargetDbIds": null,
+      "SourceDbId": null,
+      "isE2E": 0,
+      "SendType": "Cyclic",
+      "CycleTime": 10,
+      "CycleTimeFast": 0,
+      "NrOfRepetitions": 0,
+      "EtherType": 2048,
+      "VlanId": 0,
+      "SrcMAC": "",
+      "DstMAC": "",
+      "SrcIP": "50.50.0.1",
+      "DstIP": "50.50.0.2",
+      "SrcPort": 5000,
+      "DstPort": 5001,
+      "TTL": 64,
+      "IpduMEntries": [31, 32],
+      "signalcount": 0,
+      "signals": []
+    },
+
+    {
+      "DbId": 31,
+      "MessageName": "MotorSpeed_PDU",
+      "Bus": "ETH_Backbone",
+      "BusType": "ETH_PDU",
+      "MessageType": 0,
+      "Direction": 1,
+      "RoutingType": 2,
+      "TargetDbIds": null,
+      "SourceDbId": 15,
+      "isE2E": 0,
+      "SendType": "Cyclic",
+      "CycleTime": 10,
+      "CycleTimeFast": 0,
+      "NrOfRepetitions": 0,
+      "PduId": 11272193,
+      "ContainerDbId": 30,
+      "Length": 8,
+      "signalcount": 1,
+      "signals": [
+        {
+          "id": 1,
+          "SignalName": "MotorSpeed_ETH",
+          "Length": 16,
+          "StartPos": 0,
+          "ByteOrder": 0,
+          "ValueType": "Unsigned",
+          "SigSendType": false,
+          "Repetitions": 0,
+          "InitValue": 0,
+          "Factor": 0.5,
+          "Offset": 0.0,
+          "Min": 0.0,
+          "Max": 32767.5,
+          "Unit": "rpm",
+          "EnumValues": null
+        }
+      ]
+    },
+
+    {
+      "DbId": 32,
+      "MessageName": "Clamp15_PDU",
+      "Bus": "ETH_Backbone",
+      "BusType": "ETH_PDU",
+      "MessageType": 0,
+      "Direction": 1,
+      "RoutingType": 2,
+      "TargetDbIds": null,
+      "SourceDbId": 15,
+      "isE2E": 0,
+      "SendType": "OnChange",
+      "CycleTime": 0,
+      "CycleTimeFast": 0,
+      "NrOfRepetitions": 0,
+      "PduId": 11272194,
+      "ContainerDbId": 30,
+      "Length": 1,
+      "signalcount": 1,
+      "signals": [
+        {
+          "id": 1,
+          "SignalName": "Clamp15_ETH",
+          "Length": 2,
+          "StartPos": 0,
+          "ByteOrder": 0,
+          "ValueType": "Unsigned",
+          "SigSendType": true,
+          "Repetitions": 0,
+          "InitValue": 0,
+          "Factor": 1.0,
+          "Offset": 0.0,
+          "Min": 0.0,
+          "Max": 3.0,
+          "Unit": "",
+          "EnumValues": { "0": "Off", "1": "On", "2": "Error", "3": "NotAvailable" }
+        }
+      ]
+    }
+
+  ],
+
+  "signal_routes": [
+    {
+      "SrcDbId": 15,
+      "SrcSignalId": 2,
+      "DstDbId": 31,
+      "DstSignalId": 1
+    },
+    {
+      "SrcDbId": 15,
+      "SrcSignalId": 1,
+      "DstDbId": 32,
+      "DstSignalId": 1
+    }
+  ]
+}

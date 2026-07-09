@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "environment.schema.json",
+  "title": "BoAt Test Environment Config",
+  "description": "Maps logical CAN/Ethernet buses to physical or virtual drivers for HIL testing.",
+  "type": "object",
+  "required": ["schema_version", "name", "gateway", "buses"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string" },
+    "name":            { "type": "string" },
+    "description":     { "type": "string" },
+    "gateway": {
+      "type": "object",
+      "required": ["address"],
+      "additionalProperties": false,
+      "properties": {
+        "binary":        { "type": "string" },
+        "tick_ms":       { "type": "integer", "minimum": 1, "default": 10 },
+        "address":       { "type": "string" },
+        "pdu_database":  { "type": "string" }
+      }
+    },
+    "buses": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/BusConfig" },
+      "propertyNames": {
+        "pattern": "^(can|eth)[0-9]+$",
+        "description": "Logical bus name, e.g. can1, can2, eth0"
+      }
+    },
+    "dut":     { "$ref": "#/$defs/DutConfig" },
+    "plugins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/PluginRef" }
+    }
+  },
+  "$defs": {
+    "BusConfig": {
+      "type": "object",
+      "required": ["type", "interface"],
+      "additionalProperties": false,
+      "properties": {
+        "type":      { "type": "string", "enum": ["virtual", "physical", "virtual_eth", "raw_eth"] },
+        "interface": { "type": "string" },
+        "bitrate":   { "type": "integer", "minimum": 1 },
+        "fd":        { "type": "boolean" },
+        "multicast_group": { "type": "string", "format": "ipv4" },
+        "port":           { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    },
+    "DutConfig": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name":        { "type": "string" },
+        "type":        { "type": "string", "enum": ["plugin", "physical", "mock"] },
+        "so_path":     { "type": "string" },
+        "config_json": { "type": "string" }
+      }
+    },
+    "PluginRef": {
+      "type": "object",
+      "required": ["so_path"],
+      "additionalProperties": false,
+      "properties": {
+        "so_path":     { "type": "string" },
+        "config_json": { "type": "string", "default": "{}" }
+      }
+    }
+  }
+}

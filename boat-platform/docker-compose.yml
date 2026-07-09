@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  boat-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+    image: boat-platform:local
+    container_name: boat-gateway
+    ports:
+      - "50051:50051"
+
+  boat-agent:
+    image: ubuntu:22.04
+    container_name: boat-agent
+    command: ["sleep", "infinity"]
+
+  boat-store:
+    image: ubuntu:22.04
+    container_name: boat-store
+    command: ["sleep", "infinity"]

@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package boat.v1;
+
+message StartCommand {}
+message PauseCommand {}
+message StepCommand { uint32 ticks = 1; }
+message ResetCommand {}
+message StopCommand {}
+message InjectFaultCommand { bytes payload = 1; }
+message QueryStateCommand {}
+
+message UdsControlMessage {
+  oneof command {
+    StartCommand start = 1;
+    PauseCommand pause = 2;
+    StepCommand step = 3;
+    ResetCommand reset = 4;
+    StopCommand stop = 5;
+    InjectFaultCommand inject_fault = 6;
+    QueryStateCommand query_state = 7;
+  }
+
+  bytes payload_bytes = 8;
+  // When set, payload_bytes is empty on the wire and the full payload is published on this iceoryx2 topic.
+  string shm_payload_topic = 9;
+  // Opaque token correlating this control frame with the SHM sample (must be non-zero when shm_payload_topic is set).
+  uint64 shm_payload_token = 10;
+}
+
+message UdsControlResponse {
+  bool ok = 1;
+  string message = 2;
+  bytes payload_bytes = 3;
+}
