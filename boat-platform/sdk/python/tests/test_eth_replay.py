@@ -495,6 +495,81 @@ class TestConvertToBinary:
         assert records == 2
 
 
+class TestParseBinaryRoundTrip:
+    def _make_replayer(self, **kwargs):
+        from boat.trace_replay import TraceReplayer
+        params = {
+            "buses": ["eth0"],
+            "speed": 1.0,
+            "replay_src_ip": "192.168.1.1",
+            "replay_dst_ip": "192.168.1.100",
+        }
+        params.update(kwargs)
+        return TraceReplayer(**params)
+
+    def _pcap_bytes(self, eth_frames: list[bytes]) -> Path:
+        import tempfile
+        f = tempfile.NamedTemporaryFile(suffix=".pcap", delete=False)
+        f.write(_make_pcap(eth_frames))
+        f.close()
+        return Path(f.name)
+
+    def test_parse_binary_matches_manual_decode(self, tmp_path):
+        from boat.trace_replay import TraceReplayer
+
+        replayer = self._make_replayer()
+        frames = [
+            _udp_packet(b"\x0a\x00\x00\x01", b"\x0a\x00\x00\x02", 12345, 30490, b"a"),
+            _udp_packet(b"\x0a\x00\x00\x01", b"\x0a\x00\x00\x02", 12346, 30491, b"bb"),
+        ]
+        p = self._pcap_bytes(frames)
+        binary = replayer.convert_to_binary(p)
+        p.unlink()
+
+        parsed = TraceReplayer.parse_binary(binary)
+        assert len(parsed) == 2
+        for frame in parsed:
+            assert frame.bus_type == frame_pb2.Frame.ETHERNET
+            assert frame.eth.ethertype == 0x0800
+
+    def test_frames_to_binary_round_trips_byte_for_byte(self, tmp_path):
+        from boat.trace_replay import TraceReplayer
+
+        replayer = self._make_replayer()
+        frames = [
+            _udp_packet(b"\x0a\x00\x00\x01", b"\x0a\x00\x00\x02", 12345, 30490, b"a"),
+            _udp_packet(b"\x0a\x00\x00\x01", b"\x0a\x00\x00\x02", 12346, 30491, b"bb"),
+        ]
+        p = self._pcap_bytes(frames)
+        binary = replayer.convert_to_binary(p)
+        p.unlink()
+
+        parsed = TraceReplayer.parse_binary(binary)
+        re_encoded = TraceReplayer.frames_to_binary(parsed)
+        assert re_encoded == binary
+
+    def test_parse_binary_empty(self):
+        from boat.trace_replay import TraceReplayer
+        assert TraceReplayer.parse_binary(b"") == []
+
+    def test_parse_binary_rejects_truncated_length_prefix(self):
+        from boat.trace_replay import TraceReplayer
+        from boat.trace_replay import TraceReplayError
+        import pytest
+
+        with pytest.raises(TraceReplayError):
+            TraceReplayer.parse_binary(b"\x01\x00")
+
+    def test_parse_binary_rejects_truncated_record(self):
+        from boat.trace_replay import TraceReplayer
+        from boat.trace_replay import TraceReplayError
+        import pytest
+
+        # Claims a 100-byte record but only provides a few bytes.
+        with pytest.raises(TraceReplayError):
+            TraceReplayer.parse_binary(struct.pack("<I", 100) + b"short")
+
+
 class TestReconstructIp6Packet:
     def _make_replayer(self, replay_src_ip="2001:db8::1",
                        replay_dst_ip="2001:db8::100"):

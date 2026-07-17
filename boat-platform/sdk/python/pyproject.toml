@@ -18,6 +18,11 @@ dev = [
   "pytest>=8.0",
   "pytest-asyncio",
 ]
+# Speeds up boat.trace_reverse_engineer's bit-correlation clustering; a pure-Python
+# fallback runs without it, just slower on large traces with many CAN IDs.
+analysis = [
+  "numpy",
+]
 
 [tool.setuptools]
 include-package-data = true

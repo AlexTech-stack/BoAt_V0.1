@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BoAt — Trace Editor Howto</title>
+<style>
+:root {
+  --bg:     #0d1117;
+  --panel:  #161b22;
+  --border: #30363d;
+  --text:   #e6edf3;
+  --muted:  #8b949e;
+  --blue:   #58a6ff;
+  --green:  #3fb950;
+  --yellow: #d29922;
+  --red:    #f85149;
+  --purple: #d2a8ff;
+  --orange: #ffa657;
+  --mono:   "SFMono-Regular",Consolas,"Liberation Mono",monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  font-size:14px; line-height:1.6;
+}
+header {
+  height:46px; background:var(--panel); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 16px; gap:12px;
+}
+.logo { font-weight:700; color:var(--blue); font-size:16px; }
+.subtitle { color:var(--muted); font-size:13px; }
+.spacer { flex:1; }
+#panel-nav {
+  height:32px; background:#0d1117; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 16px; gap:8px;
+}
+#panel-nav .nav-link { color:var(--muted); font-size:12px; text-decoration:none; padding:4px 10px; border-radius:4px; }
+#panel-nav .nav-link:hover { color:var(--text); background:var(--panel); }
+main { max-width:860px; margin:0 auto; padding:24px 24px 80px; }
+h1 { font-size:22px; margin-bottom:4px; }
+h2 { font-size:16px; margin:28px 0 10px; color:var(--blue); border-bottom:1px solid var(--border); padding-bottom:6px; }
+h3 { font-size:13px; margin:18px 0 8px; color:var(--text); }
+h4 { font-size:12px; margin:14px 0 6px; color:var(--muted); }
+p, li { color:var(--text); }
+p { margin-bottom:10px; }
+ul, ol { margin:0 0 12px 22px; }
+li { margin-bottom:6px; }
+code {
+  font-family:var(--mono); font-size:12px; background:var(--panel); border:1px solid var(--border);
+  border-radius:3px; padding:1px 5px; color:var(--orange);
+}
+pre {
+  font-family:var(--mono); font-size:12px; background:var(--panel); border:1px solid var(--border);
+  border-radius:6px; padding:10px 14px; overflow-x:auto; margin:10px 0 14px; color:var(--green);
+}
+pre code { background:none; border:none; padding:0; color:inherit; }
+.callout {
+  background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--blue);
+  border-radius:6px; padding:10px 14px; margin:10px 0 14px; font-size:13px;
+}
+.callout.warn { border-left-color:var(--red); }
+.callout strong { color:var(--red); }
+.field-table { width:100%; border-collapse:collapse; font-size:13px; margin:8px 0 16px; }
+.field-table th, .field-table td { text-align:left; padding:6px 10px; border-bottom:1px solid var(--border); }
+.field-table th { color:var(--muted); font-weight:600; font-size:11px; }
+.top-link { color:var(--blue); text-decoration:none; font-size:12px; }
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">⛵ BoAt</span>
+  <span class="subtitle">Trace Editor — Howto</span>
+  <span class="spacer"></span>
+  <a class="top-link" href="/">← Back to Trace Editor</a>
+</header>
+
+<nav id="panel-nav">
+  <a class="nav-link" data-port="8089" style="color:var(--blue)">Trace Editor</a>
+  <a class="nav-link" data-port="8088">Trace Analyzer</a>
+  <a class="nav-link" data-port="8090">Eth Analyzer</a>
+  <a class="nav-link" data-port="8087">PDU Editor</a>
+</nav>
+
+<main>
+  <h1>Trace Editor — How To</h1>
+  <p style="color:var(--muted)">
+    <code>tools/trace_editor.py</code> is a standalone tool for viewing, filtering, and editing
+    the frames inside a gateway binary trace file (the format produced by
+    <code>boat replay import</code> / <code>TraceReplayer.convert_to_binary()</code>). It needs no
+    running gateway to load, edit, or save a trace — a gateway is only needed for the optional
+    "Push to Gateway" action.
+  </p>
+  <pre><code>python3 tools/trace_editor.py
+# open http://localhost:8089  (port via BOAT_TRACE_EDITOR_PORT)</code></pre>
+
+  <h2>Loading a trace</h2>
+  <p>The file dropdown auto-populates from three places, no Browse needed for the common case:</p>
+  <ul>
+    <li><code>/tmp</code> — where the gateway actually writes imported traces
+      (<code>ImportTraceData</code>'s hardcoded storage path is <code>/tmp/&lt;trace_id&gt;.trace</code>),
+      so anything already imported shows up here.</li>
+    <li><code>traces/</code> — this tool's own default save location.</li>
+    <li>your home directory.</li>
+  </ul>
+  <p>Pick a file and click <strong>Load</strong>, or <strong>Browse...</strong> to type an
+  arbitrary path. <strong>New</strong> starts an empty trace from scratch.</p>
+
+  <h2>The frame table</h2>
+  <p>
+    Columns: index, bus type, iface, timestamp (ns), a one-line summary (CAN ID/DLC, MAC/IP:port,
+    etc.), the payload as hex, and <strong>Len</strong> — always the <em>actual</em> current
+    payload byte count, recomputed from the hex string every time the table renders, including
+    trailing zero bytes. It never trusts a separately cached length field, so it can't drift from
+    what's really there.
+  </p>
+  <p>
+    Use the filter bar (bus type, iface substring, CAN ID, timestamp range) to narrow down a large
+    trace. Filtering is client-side over the already-loaded frame list — no round-trip per filter
+    change.
+  </p>
+  <p>
+    Row actions: <strong>Edit</strong>, <strong>Insert After</strong> (clones the row as a
+    starting point for the new frame), and <strong>Delete</strong>. Checkboxes +
+    <strong>Delete Selected</strong> for bulk removal.
+  </p>
+
+  <h2>Saving and pushing to a gateway</h2>
+  <ul>
+    <li><strong>Save</strong> writes back to the currently loaded path; <strong>Save As</strong>
+      picks a new one (relative paths land under <code>traces/</code>).</li>
+    <li><strong>Push to Gateway</strong> uploads the current in-memory frames straight to a
+      running gateway via <code>ReplayService.ImportTraceData</code>, using the
+      <strong>Gateway</strong> address field in the toolbar (remembered across sessions via a
+      cookie, so you don't retype it every time).</li>
+  </ul>
+  <div class="callout">
+    Push is <em>not</em> the same as <code>boat replay import</code> — that command only accepts
+    source formats (<code>.asc</code>/<code>.blf</code>/<code>.pcap</code>) and always does its
+    own client-side conversion, so it can't re-ingest a trace that's already in this tool's binary
+    format. Push is the only way to get an edited trace back into a simulation. After pushing,
+    actually play it with:
+    <pre><code>boat replay start --trace &lt;trace_id&gt; --buses &lt;ifaceA,ifaceB&gt;</code></pre>
+  </div>
+  <p>
+    Both <strong>Save</strong> and <strong>Push</strong> report non-blocking warnings (shown as
+    toasts) for anything that looks like a mistake rather than blocking you outright — see
+    <a class="top-link" href="#gotchas" style="color:var(--blue)">Gotchas</a> below for what they check.
+  </p>
+
+  <h2>Editing a frame</h2>
+  <p>
+    Click <strong>Edit</strong> (or <strong>Insert After</strong> / <strong>+ Add Frame</strong>)
+    to open the frame form. Fields shown depend on the selected <strong>Bus Type</strong>.
+  </p>
+
+  <h3>Common fields</h3>
+  <ul>
+    <li><strong>Iface</strong> — what this does depends on bus type, see
+      <a class="top-link" href="#gotchas" style="color:var(--blue)">Gotchas</a>; for CAN/CANFD
+      it's essentially informational.</li>
+    <li><strong>Timestamp (ns)</strong> — the raw nanosecond value you edit is a big integer (real
+      epoch timestamps are ~19 digits); the box underneath is a read-only, colored, dot-separated
+      grouping of that same number (seconds · milliseconds · microseconds · nanoseconds, right to
+      left) purely to make it easier to read at a glance. It does not change what gets saved.</li>
+    <li><strong>Payload (hex)</strong> — shared across all bus types. For CAN/CANFD and PDU this
+      is the actual payload. For Ethernet it's <em>everything after the Ethernet header</em> — an
+      IP packet, or a raw EtherCAT datagram (see below) — normally built for you rather than
+      hand-edited.</li>
+  </ul>
+
+  <h3>CAN / CANFD</h3>
+  <p>
+    <strong>DLC</strong> auto-fills to match the Payload's byte length every time you edit
+    Payload.
+  </p>
+  <div class="callout warn">
+    <strong>DLC means "how many bytes actually get sent" — it is not an ISO 11898-1 DLC code.</strong>
+    If you edit DLC by hand to something smaller than the payload, the frame gets truncated to
+    that many bytes; a red warning appears immediately if DLC and payload length disagree, and the
+    same check runs again server-side on Save/Push in case a mismatch was created outside the UI
+    (e.g. a direct API call).
+  </div>
+  <p>
+    For CAN FD, if the resulting length isn't already one of the 8 valid FD lengths
+    (0-8/12/16/20/24/32/48/64 bytes), the gateway rounds it up and zero-pads automatically when the
+    frame is actually sent — you never need to pre-pad it yourself in the editor.
+  </p>
+  <p>
+    <strong>Flags</strong> is a bitmask: <code>0x01</code>=CANFD_BRS (bit-rate switch),
+    <code>0x02</code>=CANFD_ESI (error state indicator), <code>0x04</code>=CANFD_FDF (FD frame
+    format). Combine with bitwise OR — <code>0x05</code> is a typical FD frame with BRS. Leave at
+    <code>0</code> for classic CAN.
+  </p>
+  <p>
+    CAN has two <em>independent</em> guided-builder axes, mirroring how EtherType and L4 Protocol
+    are independent for Ethernet: a <strong>CAN ID Builder</strong> (computes the CAN ID itself)
+    and a <strong>Payload Builder</strong> (computes the Payload). Either, both, or neither can be
+    active on the same frame.
+  </p>
+
+  <h4>CAN ID Builder (J1939, CANopen)</h4>
+  <table class="field-table">
+    <tr><th>Builder</th><th>Fields</th><th>Notes</th></tr>
+    <tr><td>J1939</td><td>Priority, PGN (hex), Destination Address, Source Address</td>
+      <td>Builds the full 29-bit extended CAN ID (Priority | EDP | DP | PF | PS | SA); extended
+        framing is automatic for any CAN ID above <code>0x7FF</code>. Destination Address is
+        greyed out/ignored for broadcast PGNs (PDU2, PGN's PF byte ≥ <code>0xF0</code>).</td></tr>
+    <tr><td>CANopen</td><td>Message Type (NMT/SYNC/EMCY/Time Stamp/PDO1-4 Tx+Rx/SDO Tx+Rx/Heartbeat),
+      Node ID</td>
+      <td>Builds the 11-bit COB-ID from CiA-301's predefined connection set. NMT/SYNC/Time Stamp
+        have a fixed COB-ID (Node ID field disabled); everything else adds Node ID to a base. A
+        guided SDO payload builder isn't available yet — set Payload directly for SDO frames.</td></tr>
+  </table>
+  <div class="callout warn">
+    J1939's CAN ID Builder <strong>deliberately does not auto-detect on frame open</strong>. Any
+    extended CAN ID can be split into <em>some</em> set of J1939 fields — there's no signature byte
+    to confirm it's actually J1939, unlike the Ethernet parsers below, which can positively reject
+    non-matching bytes — so picking J1939 from the dropdown is always an explicit "reinterpret this
+    ID" action, never something the editor guesses for you.
+  </div>
+
+  <h4>Payload Builder (UDS, OBD-II)</h4>
+  <p>
+    Both build an ISO 15765-2 <strong>Single Frame</strong> only —
+    <code>[PCI byte][Service ID or Mode][Data]</code>, up to 7 data bytes total on classic CAN.
+    This is one request or response frame; a real multi-frame exchange (needed once data exceeds 7
+    bytes) needs the live <code>can_tp</code> plugin, the same limitation already noted for TCP
+    under Ethernet below.
+  </p>
+  <table class="field-table">
+    <tr><th>Builder</th><th>Fields</th><th>Notes</th></tr>
+    <tr><td>UDS</td><td>Service ID, Data (hex)</td>
+      <td>Service ID has suggestions for common ones (<code>0x22</code> ReadDataByIdentifier,
+        <code>0x2E</code> WriteDataByIdentifier, <code>0x3E</code> TesterPresent, etc.) but is a
+        free-text field, so any hex value works. Positive responses are conventionally Service ID
+        + <code>0x40</code>; negative responses are <code>0x7F</code>, the original Service ID,
+        then a 1-byte NRC.</td></tr>
+    <tr><td>OBD-II</td><td>Mode, Data (hex)</td>
+      <td>Whether Data starts with a PID byte depends on the Mode: <code>0x01</code>/<code>0x02</code>/
+        <code>0x09</code> take one, <code>0x03</code>/<code>0x04</code>/<code>0x0A</code>
+        don't — just type it as the first byte(s) of Data when it applies.</td></tr>
+  </table>
+  <p>
+    <strong>Opening an existing frame auto-detects</strong> UDS vs. OBD-II from the payload's PCI
+    byte and declared length (a real structural check, unlike J1939's CAN ID case above), falling
+    back to raw mode for anything that doesn't match.
+  </p>
+
+  <h3>Ethernet</h3>
+  <p>
+    <code>Frame.payload</code> for Ethernet frames is everything after the Ethernet header —
+    there's no separate "header vs. data" split at the protocol level, which used to mean
+    hand-building the entire IPv4/IPv6 + UDP/ICMP header (or an EtherCAT datagram) yourself as raw
+    hex just to send one message. The editor now does that construction for you.
+  </p>
+  <div class="callout warn">
+    <strong>EtherType and VLAN ID are plain L2 metadata, set independently of everything below.</strong>
+    EtherType is never auto-filled or overwritten by the IP Version / L4 Protocol choice — set it
+    yourself to match (<code>0x0800</code> IPv4, <code>0x86DD</code> IPv6, <code>0x88A4</code>
+    EtherCAT, <code>0x0806</code> ARP). Leaving it inconsistent with the actual packet inside
+    builds a frame a real receiver can't parse correctly; the editor won't catch that mismatch for
+    you.
+  </div>
+  <p><strong>L4 Protocol</strong> controls the guided form — None, UDP, ICMP, SOME/IP (over UDP),
+    DoIP (over UDP, discovery only), EtherCAT (no IP at all), or ARP (no IP payload):</p>
+  <table class="field-table">
+    <tr><th>Protocol</th><th>Fields</th><th>Notes</th></tr>
+    <tr><td>UDP</td><td>Src Port, Dst Port, Application Data (hex)</td>
+      <td>Builds a full IP+UDP packet with correct length and checksum. IP Version and Src/Dst IP apply.</td></tr>
+    <tr><td>ICMP</td><td>Type, Code, Identifier, Sequence, Application Data (hex)</td>
+      <td>IPv4 echo request/reply = <code>8</code>/<code>0</code> and <code>0</code>/<code>0</code>;
+        IPv6 = <code>128</code>/<code>0</code> and <code>129</code>/<code>0</code>. IP Version and
+        Src/Dst IP apply.</td></tr>
+    <tr><td>SOME/IP, DoIP, ARP, EtherCAT</td><td>See their own sections below</td><td></td></tr>
+    <tr><td>None</td><td>Payload (hex) becomes a plain hex editor again</td>
+      <td>For anything the guided form doesn't cover — including TCP: this codebase sends TCP
+        through a dedicated connection-oriented plugin, not as raw frames, so a guided TCP builder
+        here wouldn't be replayable live anyway. Still fine to view/edit already-captured TCP bytes
+        as raw hex.</td></tr>
+  </table>
+  <p>
+    While a protocol is selected, the Payload field is a <strong>read-only preview</strong> of the
+    exact bytes that will be sent — switch L4 Protocol back to "None" to take over editing the raw
+    bytes directly.
+  </p>
+  <p>
+    <strong>Opening an existing frame</strong> auto-detects UDP/ICMP/SOME/IP/DoIP/EtherCAT/ARP from
+    its actual payload bytes (EtherCAT and ARP are gated on EtherType being <code>0x88A4</code>/
+    <code>0x0806</code>; SOME/IP and DoIP are detected structurally inside a UDP payload) and
+    pre-fills the guided fields; anything it can't recognize (TCP, a multi-datagram EtherCAT frame,
+    or anything that isn't well-formed) is left in raw mode untouched — existing bytes are never
+    silently reinterpreted.
+  </p>
+
+  <h4>EtherCAT</h4>
+  <p>
+    Selecting <strong>EtherCAT</strong> hides the IP Version/Src IP/Dst IP fields (EtherCAT has no
+    IP layer — it rides directly on the Ethernet header via EtherType <code>0x88A4</code>) and
+    builds a single EtherCAT datagram: the 2-byte EtherCAT frame header plus a 10-byte datagram
+    header, your data, and a 2-byte Working Counter.
+  </p>
+  <table class="field-table">
+    <tr><th>Field</th><th>Meaning</th></tr>
+    <tr><td>Command</td><td>The 15 standard EtherCAT commands (NOP, APRD/APWR/APRW,
+      FPRD/FPWR/FPRW, BRD/BWR/BRW, LRD/LWR/LRW, ARMW, FRMW).</td></tr>
+    <tr><td>Index (Idx)</td><td>A free-form byte the master can use to correlate a response to its
+      request; not interpreted by slaves.</td></tr>
+    <tr><td>Address ADP / ADO</td><td>Meaning depends on Command, and the field labels update to
+      say so: auto-increment commands (AP*, ARMW) treat ADP as a ring position counted back from
+      the master and ADO as a byte offset into the slave's memory; configured-address commands
+      (FP*, FRMW) treat ADP as the slave's fixed station address; broadcast commands (B*) ignore
+      ADP (leave it <code>0</code>); logical commands (L*) treat ADP:ADO together as one 32-bit
+      logical address (ADP = low 16 bits, ADO = high 16 bits) matched by a slave's FMMU
+      configuration.</td></tr>
+    <tr><td>Working Counter (WKC)</td><td>Starts at <code>0x0000</code> for a frame sent by the
+      master; each slave that successfully processes the datagram increments it. Only set this
+      nonzero to deliberately hand-craft a frame that looks like it already circulated through
+      slaves.</td></tr>
+    <tr><td>Datagram Data (hex)</td><td>The same "Application Data" field used by UDP/ICMP,
+      relabeled.</td></tr>
+  </table>
+  <div class="callout warn">
+    This builds exactly <strong>one</strong> EtherCAT datagram. Real EtherCAT frames often chain
+    several datagrams together (the "More" bit in each datagram's length word signals another
+    follows) to address multiple slaves per cycle — that's not constructible in this guided form.
+    Switch L4 Protocol to "None" and hand-edit the raw bytes if you need a multi-datagram frame;
+    opening such a frame later will correctly leave it in raw mode rather than truncating it to the
+    first datagram.
+  </div>
+
+  <h4>SOME/IP</h4>
+  <p>
+    Builds the standard 16-byte SOME/IP header (Service ID, Method ID, Length, Client ID, Session
+    ID, Protocol Version <code>0x01</code>, Interface Version, Message Type, Return Code) directly
+    on top of UDP, mirroring the layout <code>someip_plugin.cpp</code>'s own header-builder uses,
+    then your Application Data. Message Type is a dropdown (<code>0x00</code> REQUEST,
+    <code>0x01</code> REQUEST_NO_RETURN, <code>0x02</code> NOTIFICATION, <code>0x80</code>
+    RESPONSE, <code>0x81</code> ERROR). Auto-detect on frame open checks that the header's
+    self-declared Length field exactly matches the actual byte count before accepting a UDP
+    payload as SOME/IP, to avoid misreading arbitrary UDP traffic.
+  </p>
+
+  <h4>DoIP (over Ethernet/UDP)</h4>
+  <p>
+    This is the <strong>lightweight</strong> variant, meant for DoIP's UDP-carried discovery
+    traffic (Vehicle Identification Request/Response, Alive Check, entity status) — just the
+    generic 8-byte DoIP header (Protocol Version, inverse Protocol Version computed for you,
+    Payload Type) plus Application Data as the raw body. Vehicle Identification Request
+    (<code>0x0001</code>) has an empty body — leave Application Data blank. For DoIP's
+    <em>diagnostic</em> traffic (Routing Activation, Diagnostic Message) with guided body fields
+    instead of raw hex, build a <strong>TCP</strong> frame instead — see its own section below.
+  </p>
+
+  <h4>ARP</h4>
+  <p>
+    Builds a standard 28-byte IPv4-over-Ethernet ARP packet. Reuses fields you've already got:
+    Sender Hardware/Protocol Address are the frame's own <strong>Src MAC</strong>/<strong>Src
+    IP</strong>; Target Protocol Address is <strong>Dst IP</strong>.
+  </p>
+  <div class="callout warn">
+    The only new field is <strong>Target Hardware Address</strong> — kept separate from
+    <strong>Dst MAC</strong> on purpose, since a real ARP request's <em>L2</em> destination is the
+    broadcast address <code>ff:ff:ff:ff:ff:ff</code>, while the <em>ARP payload's</em> target
+    hardware address is the one being resolved (unknown, <code>00:00:00:00:00:00</code>) —
+    conflating the two would build a frame that doesn't look like a real request.
+    <strong>Operation</strong> is Request (<code>1</code>) or Reply (<code>2</code>); leave Target
+    Hardware Address at all zeros for a request, fill it in for a reply.
+  </div>
+
+  <h3>TCP / PDU</h3>
+  <p>
+    TCP and PDU fields are more direct: IPs/ports/connection-id for TCP (<strong>Conn Id</strong>:
+    <code>-1</code> opens a new connection, <code>-2</code> closes one, <code>&gt;=0</code> reuses
+    an existing one), just a numeric ID for PDU. Neither has a packed flags field.
+  </p>
+
+  <h4>DoIP (over TCP — diagnostic traffic)</h4>
+  <p>
+    DoIP's diagnostic traffic (the case that matters most for testing) rides on <strong>TCP</strong>
+    in this codebase — <code>Frame.bus_type == TCP</code> frames already represent one segment's
+    raw application bytes (per <code>_replay_tcp_streams()</code>'s buffering model), so the DoIP
+    guided builder lives here as a <strong>Payload Protocol</strong> dropdown (None / DoIP), not on
+    the Ethernet form. Builds the same 8-byte generic DoIP header as the Ethernet/UDP variant, plus
+    a guided body for two Payload Types:
+  </p>
+  <table class="field-table">
+    <tr><th>Payload Type</th><th>Fields</th><th>Notes</th></tr>
+    <tr><td>Routing Activation Request (<code>0x0005</code>)</td>
+      <td>Source Address, Activation Type</td>
+      <td>Source Address is the tester's own logical address; Activation Type <code>0x00</code> =
+        default. Reserved bytes are zero-filled for you.</td></tr>
+    <tr><td>Diagnostic Message (<code>0x8001</code>)</td>
+      <td>Source Address, Target Address, Service ID, Data (hex)</td>
+      <td>Service ID + Data is the same field concept as the CAN payload builder's UDS option.
+        <strong>No ISO-TP PCI byte here</strong> — unlike CAN, DoIP's own Payload Length field
+        already frames the message, so User Data is just Service ID + Data directly.</td></tr>
+    <tr><td>Other (raw body hex)</td><td>Payload Type (hex), Body (hex)</td>
+      <td>For anything else (entity status, power mode, alive check, etc.) — just the generic
+        header plus whatever raw bytes make up that payload type's body.</td></tr>
+  </table>
+  <p>
+    Opening an existing TCP frame auto-detects all of this (protocol version consistency +
+    declared length must match exactly), pre-filling whichever guided sub-fields apply; anything
+    that doesn't match DoIP's header structure is left as raw Payload hex.
+  </p>
+
+  <h2 id="gotchas">Gotchas and shared semantics</h2>
+  <h3>Iface means different things per bus type</h3>
+  <p>Confirmed from <code>replay_engine.cpp</code>'s <code>ProtoToCoreFrame()</code>:</p>
+  <table class="field-table">
+    <tr><th>Bus type</th><th>What <code>iface</code> does</th></tr>
+    <tr><td>CAN / CANFD</td><td>Ignored at replay time. The actual target interface always comes
+      from <code>channel</code>, resolved via <code>boat replay start/stream --buses</code>
+      (channel 1 → first <code>--buses</code> entry, channel 2 → second, etc.).</td></tr>
+    <tr><td>Ethernet</td><td>Used as a fallback only if <code>--eth-iface</code> isn't passed to replay.</td></tr>
+    <tr><td>PDU</td><td>Used directly.</td></tr>
+    <tr><td>TCP</td><td>Not used by this replay path at all (handled by the TCP plugin).</td></tr>
+  </table>
+
+  <h3>Timestamps should be non-decreasing</h3>
+  <p>
+    The replay engine schedules frames by absolute <code>timestamp_ns</code>; a frame timestamped
+    earlier than the one before it is a red flag (Save and Push both warn about this) — it used to
+    be able to hang the whole replay subsystem indefinitely on that one bad frame, which is now
+    fixed to at least not hang, but out-of-order timestamps are still not something you want in a
+    trace meant to replay in order.
+  </p>
+
+  <h3>Len always reflects the real payload</h3>
+  <p>Computed fresh from the hex string, not a cached field — trust it even after manual edits.</p>
+</main>
+<script>
+(function() {
+  const h = window.location.hostname, p = window.location.port;
+  document.querySelectorAll('.nav-link').forEach(a => {
+    a.href = 'http://' + h + ':' + a.dataset.port + '/';
+    if (a.dataset.port === p) a.classList.add('active');
+  });
+})();
+</script>
+</body>
+</html>

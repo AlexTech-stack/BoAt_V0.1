@@ -135,6 +135,7 @@ def stream_replay(
         raise typer.Exit(1)
 
     replay_id = resp.replay_id
+    typer.echo(f"replay_id: {replay_id}  (use with `boat replay pause/resume/stop --replay-id ...` from another terminal)")
 
     # ── Stream ─────────────────────────────────────────────────────────────
     total = 0

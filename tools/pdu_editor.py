@@ -431,9 +431,13 @@ tr.selected td { background:rgba(88,166,255,0.1); }
 .empty-state { text-align:center; padding:40px; color:var(--muted); }
 .empty-state h2 { font-size:18px; margin-bottom:8px; }
 .empty-state p { font-size:13px; }
+#toast-container {
+  position:fixed; bottom:20px; right:20px; z-index:9999;
+  display:flex; flex-direction:column-reverse; gap:8px; align-items:flex-end;
+}
 .toast {
-  position:fixed; bottom:20px; right:20px; padding:10px 20px; border-radius:6px; font-size:13px;
-  z-index:9999; animation:fadeIn 0.2s;
+  padding:10px 20px; border-radius:6px; font-size:13px; max-width:420px;
+  animation:fadeIn 0.2s;
 }
 .toast.info { background:var(--blue); color:#fff; }
 .toast.error { background:var(--red); color:#fff; }
@@ -453,13 +457,10 @@ tr.selected td { background:rgba(88,166,255,0.1); }
 </header>
 
 <nav id="panel-nav">
-  <a class="nav-link" data-port="8086">Launcher</a>
-  <a class="nav-link" data-port="8080">Dashboard</a>
-  <a class="nav-link" data-port="8081">Nodes</a>
-  <a class="nav-link" data-port="8082">Commander</a>
-  <a class="nav-link" data-port="8083">Recorder</a>
-  <a class="nav-link" data-port="8087" style="color:var(--blue)">PDU Editor</a>
+  <a class="nav-link" data-port="8089">Trace Editor</a>
   <a class="nav-link" data-port="8088">Trace Analyzer</a>
+  <a class="nav-link" data-port="8090">Eth Analyzer</a>
+  <a class="nav-link" data-port="8087" style="color:var(--blue)">PDU Editor</a>
 </nav>
 
 <div class="layout">
@@ -678,7 +679,10 @@ function toast(msg, type="info") {
   const el = document.createElement("div");
   el.className = "toast " + type; el.textContent = msg;
   document.getElementById("toast-container").appendChild(el);
-  setTimeout(() => el.remove(), 3000);
+  // Longer messages get more time to read; multiple toasts stack in the
+  // container (column-reverse) instead of overlapping at the same spot.
+  const duration = Math.min(8000, Math.max(3000, msg.length * 60));
+  setTimeout(() => el.remove(), duration);
 }
 
 // ── DB operations ─────────────────────────────────────────────────────────

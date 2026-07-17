@@ -359,8 +359,17 @@ void ReplayController::ReplayLoop() {
         }
         if (active_config_.speed == ReplaySpeed::REAL_TIME ||
             active_config_.speed == ReplaySpeed::ACCELERATED) {
+          // Traces are expected to be timestamp-ordered, but a record
+          // earlier than the replay's base tick (e.g. from a hand-edited
+          // trace) must not be allowed to underflow this unsigned delta --
+          // that previously produced a deadline hundreds of millions of
+          // years out, which stalls this frame and every RPC that touches
+          // the replay controller afterward. Clamp to "play immediately"
+          // instead.
+          const std::uint64_t tick_delta =
+              (tick > replay_base_tick_) ? (tick - replay_base_tick_) : 0;
           const auto tick_offset_ns = static_cast<double>(
-              (tick - replay_base_tick_) * tick_duration_.count());
+              tick_delta * tick_duration_.count());
           const auto deadline_offset = std::chrono::nanoseconds(
               static_cast<std::uint64_t>(tick_offset_ns / speed_multiplier));
           tick_timer_->WaitUntil(replay_base_time_ + deadline_offset);

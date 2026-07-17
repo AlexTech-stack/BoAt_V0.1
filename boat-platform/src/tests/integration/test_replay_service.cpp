@@ -252,6 +252,70 @@ TEST_CASE("ReplayService Pause/Resume/Stop lifecycle via gRPC", "[integration][r
   server->Shutdown();
 }
 
+TEST_CASE("ReplayService StartReplay invalidates the previous replay_id", "[integration][replay]") {
+  // Only one boat::replay::ReplayController is ever shared across all
+  // replays, so starting a second replay silently stops whatever was
+  // playing under the first replay_id. active_replays_ must reflect that --
+  // otherwise a stale replay_id from a superseded StartReplay call would
+  // still pass the PauseReplay/ResumeReplay/StopReplay/SeekReplay lookup
+  // and end up controlling the *new* replay under the old name.
+  IntegrationFixture f("r5a");
+  boat::store::TraceRecord meta_b;
+  meta_b.id = "r5b";
+  meta_b.storage_path = f.trace_file + "_b";
+  meta_b.format = boat::store::TraceRecord::Format::BINARY;
+  f.trace_store.WriteTrace(meta_b, std::span<const std::uint8_t>(BuildTestTraceData()));
+
+  grpc::ServerBuilder builder;
+  builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials());
+  builder.RegisterService(&f.replay_service);
+  std::unique_ptr<grpc::Server> server = builder.BuildAndStart();
+  REQUIRE(server != nullptr);
+  auto channel = server->InProcessChannel({});
+  auto stub = boat::v1::ReplayService::NewStub(channel);
+
+  grpc::ClientContext start_a_ctx;
+  boat::v1::StartReplayRequest start_a_req;
+  start_a_req.set_trace_id("r5a");
+  start_a_req.set_speed(boat::v1::REPLAY_SPEED_ACCELERATED);
+  start_a_req.set_speed_multiplier(100.0);
+  boat::v1::ReplayControlResponse start_a_resp;
+  REQUIRE(stub->StartReplay(&start_a_ctx, start_a_req, &start_a_resp).ok());
+  const std::string replay_id_a = start_a_resp.replay_id();
+  REQUIRE_FALSE(replay_id_a.empty());
+
+  grpc::ClientContext start_b_ctx;
+  boat::v1::StartReplayRequest start_b_req;
+  start_b_req.set_trace_id("r5b");
+  start_b_req.set_speed(boat::v1::REPLAY_SPEED_ACCELERATED);
+  start_b_req.set_speed_multiplier(100.0);
+  boat::v1::ReplayControlResponse start_b_resp;
+  REQUIRE(stub->StartReplay(&start_b_ctx, start_b_req, &start_b_resp).ok());
+  const std::string replay_id_b = start_b_resp.replay_id();
+  REQUIRE_FALSE(replay_id_b.empty());
+  REQUIRE(replay_id_a != replay_id_b);
+
+  // The old replay_id must no longer be controllable -- it was superseded,
+  // not merely one of several concurrently active replays.
+  grpc::ClientContext pause_a_ctx;
+  boat::v1::PauseReplayRequest pause_a_req;
+  pause_a_req.set_replay_id(replay_id_a);
+  boat::v1::ReplayControlResponse pause_a_resp;
+  auto pause_a_status = stub->PauseReplay(&pause_a_ctx, pause_a_req, &pause_a_resp);
+  REQUIRE(pause_a_status.error_code() == grpc::StatusCode::NOT_FOUND);
+
+  // The current replay_id must still work.
+  grpc::ClientContext stop_b_ctx;
+  boat::v1::StopReplayRequest stop_b_req;
+  stop_b_req.set_replay_id(replay_id_b);
+  boat::v1::ReplayControlResponse stop_b_resp;
+  auto stop_b_status = stub->StopReplay(&stop_b_ctx, stop_b_req, &stop_b_resp);
+  REQUIRE(stop_b_status.ok());
+  REQUIRE(stop_b_resp.accepted());
+
+  server->Shutdown();
+}
+
 TEST_CASE("ReplayService speed proto mapping works for all modes", "[integration][replay]") {
   IntegrationFixture f("r4");
 

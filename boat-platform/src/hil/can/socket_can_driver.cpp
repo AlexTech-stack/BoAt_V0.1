@@ -19,6 +19,29 @@
 
 namespace boat::hil {
 
+namespace {
+// ISO 11898-1 CAN FD payload lengths are quantized: above the classic 0-8
+// byte range there are only 8 more valid lengths (12/16/20/24/32/48/64),
+// encoded on the wire by DLC codes 9-15. CanFrame::dlc elsewhere in this
+// codebase is always treated as a literal byte count (see core::Frame::dlc,
+// which this is fed from), so a caller sending e.g. a 9-byte FD payload
+// would otherwise put a bare `len=9` straight into the kernel canfd_frame --
+// not a valid ISO length, so real CAN FD receivers decoding the DLC nibble
+// per spec would read 12 bytes (3 of them garbage) instead of the 9 that
+// were actually meant. Round up to the next valid length before writing;
+// the gap gets zero-padded (padding byte value is implementation-defined
+// by the spec, zero is as valid as any other choice here).
+std::uint8_t RoundUpToValidCanFdLen(std::uint8_t len) {
+  static constexpr std::uint8_t kValidLens[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64};
+  for (std::uint8_t valid : kValidLens) {
+    if (len <= valid) {
+      return valid;
+    }
+  }
+  return 64;
+}
+}  // namespace
+
 SocketCanDriver::SocketCanDriver(std::string interface_name) : iface_(std::move(interface_name)) {}
 
 bool SocketCanDriver::Open() {
@@ -110,11 +133,12 @@ bool SocketCanDriver::WriteFrame(const CanFrame& frame) {
   const std::uint32_t ext_flag = (frame.can_id > 0x7FF) ? CAN_EFF_FLAG : 0U;
   if (frame.flags & kCanFdFlagFdf) {
     // CAN FD frame
-    struct canfd_frame raw {};
+    struct canfd_frame raw {};  // zero-initializes raw.data, so any padding added below is 0x00
     raw.can_id = frame.can_id | ext_flag;
-    raw.len    = frame.dlc <= CANFD_MAX_DLEN ? frame.dlc : CANFD_MAX_DLEN;
+    const std::uint8_t requested_len = frame.dlc <= CANFD_MAX_DLEN ? frame.dlc : CANFD_MAX_DLEN;
+    raw.len    = RoundUpToValidCanFdLen(requested_len);
     raw.flags  = frame.flags;
-    std::memcpy(raw.data, frame.data, raw.len);
+    std::memcpy(raw.data, frame.data, requested_len);
     const ssize_t bytes = write(socket_fd_, &raw, sizeof(raw));
     return bytes == static_cast<ssize_t>(sizeof(raw));
   } else {

@@ -71,6 +71,12 @@ grpc::Status ReplayServiceImpl::StartReplay(grpc::ServerContext*, const boat::v1
     ctx_.replay_controller.Start(config);
     {
       std::lock_guard<std::mutex> lock(replay_mutex_);
+      // Only one replay can ever be active -- ctx_.replay_controller is a
+      // single shared instance, and Start() above just stopped whatever was
+      // previously playing. Clear stale entries so an old replay_id from a
+      // superseded Start call can't still pass the PauseReplay/StopReplay/
+      // etc. lookup and end up controlling *this* replay under the wrong name.
+      active_replays_.clear();
       active_replays_[replay_id] = config;
     }
     response->set_accepted(true);
@@ -257,6 +263,10 @@ grpc::Status ReplayServiceImpl::StartReplayFromEvents(grpc::ServerContext*,
     const std::string replay_id = "evtstore_replay_" + request->simulation_id();
     {
       std::lock_guard<std::mutex> lock(replay_mutex_);
+      // Same shared-controller reasoning as StartReplay: clear stale entries
+      // rather than accumulating replay_ids that no longer refer to what's
+      // actually playing.
+      active_replays_.clear();
       active_replays_[replay_id] = boat::replay::ReplayConfig{};
     }
 

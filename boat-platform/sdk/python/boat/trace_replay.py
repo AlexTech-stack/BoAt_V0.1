@@ -385,13 +385,54 @@ class TraceReplayer:
                         ),
                     )
 
-                data = proto.SerializeToString()
-                result.extend(struct.pack("<I", len(data)))
-                result.extend(data)
+                result.extend(self._pack_frame_record(proto))
 
         if self._tcp_streams:
             self._replay_tcp_streams()
         return bytes(result)
+
+    @staticmethod
+    def _pack_frame_record(frame) -> bytes:
+        """Pack one ``boat.v1.Frame`` as a length-delimited binary trace record."""
+        data = frame.SerializeToString()
+        return struct.pack("<I", len(data)) + data
+
+    @classmethod
+    def frames_to_binary(cls, frames: List) -> bytes:
+        """Serialize ``boat.v1.Frame`` messages to the gateway's binary trace format.
+
+        Inverse of :meth:`parse_binary`. Shares the per-record encoding used
+        by :meth:`convert_to_binary`, so a trace parsed with ``parse_binary``
+        and re-encoded here round-trips byte-for-byte.
+        """
+        return b"".join(cls._pack_frame_record(frame) for frame in frames)
+
+    @staticmethod
+    def parse_binary(data: bytes) -> List:
+        """Parse the gateway's length-delimited ``boat.v1.Frame`` binary trace format.
+
+        Inverse of :meth:`frames_to_binary`. Each record is ``uint32 length``
+        (little-endian) followed by that many bytes of a serialized
+        ``boat.v1.Frame`` protobuf, matching the format the replay engine
+        reads (``src/replay/replay_engine/replay_engine.cpp``).
+        """
+        from boat.v1 import frame_pb2
+
+        frames = []
+        offset = 0
+        n = len(data)
+        while offset < n:
+            if offset + 4 > n:
+                raise TraceReplayError(f"Truncated length prefix at offset {offset}")
+            (length,) = struct.unpack_from("<I", data, offset)
+            offset += 4
+            if offset + length > n:
+                raise TraceReplayError(f"Truncated frame record at offset {offset}")
+            frame = frame_pb2.Frame()
+            frame.ParseFromString(data[offset:offset + length])
+            frames.append(frame)
+            offset += length
+        return frames
 
     def _buffer_tcp_frame(self, frame: EthernetPcapFrame) -> None:
         """Buffer a TCP frame by stream for later stateful replay."""

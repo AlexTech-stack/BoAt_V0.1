@@ -1,4 +1,5 @@
 #include <atomic>
+#include <chrono>
 #include <csignal>
 #include <cstdint>
 #include <cstdio>
@@ -53,6 +54,7 @@ namespace {
 std::shared_ptr<grpc::Server> g_server;
 boat::core::TickScheduler* g_scheduler = nullptr;
 std::atomic<bool> g_node_tick_running{false};
+std::atomic<bool> g_shutdown_requested{false};
 constexpr std::uint64_t kGatewayDeterminismSeed = 777;
 
 std::array<std::uint8_t, 6> ReadInterfaceMac(const std::string& iface) {
@@ -76,12 +78,14 @@ std::array<std::uint8_t, 6> ReadInterfaceMac(const std::string& iface) {
 }
 
 void HandleSignal(int) {
-  if (g_server) {
-    g_server->Shutdown();
-  }
-  if (g_scheduler != nullptr) {
-    g_scheduler->Stop();
-  }
+  // Signal handlers may only call async-signal-safe functions.
+  // grpc::Server::Shutdown() acquires internal Abseil mutexes and is not
+  // signal-safe -- calling it directly here can land while the main thread
+  // is inside Server::Wait() holding that same lock, which Abseil's
+  // deadlock detector then aborts on. Just flip a flag; the actual
+  // Shutdown()/Stop() calls happen on the dedicated watcher thread in
+  // main() below.
+  g_shutdown_requested.store(true, std::memory_order_relaxed);
 }
 }  // namespace
 
@@ -370,9 +374,26 @@ int main() {
   std::signal(SIGINT, HandleSignal);
   std::signal(SIGTERM, HandleSignal);
 
+  // Shutdown() must not be called from the signal handler itself (see
+  // HandleSignal); this thread polls the flag it sets and performs the
+  // actual shutdown from a normal thread context instead.
+  std::thread shutdown_watcher([] {
+    while (!g_shutdown_requested.load(std::memory_order_relaxed)) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    if (g_server) {
+      g_server->Shutdown();
+    }
+    if (g_scheduler != nullptr) {
+      g_scheduler->Stop();
+    }
+  });
+
   if (g_server) {
     g_server->Wait();
   }
+  g_shutdown_requested.store(true, std::memory_order_relaxed);
+  shutdown_watcher.join();
   sim.scheduler().Stop();
   g_node_tick_running.store(false, std::memory_order_release);
   node_manager.ShutdownAll();

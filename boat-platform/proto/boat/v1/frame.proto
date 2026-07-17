@@ -6,7 +6,15 @@ package boat.v1;
 
 message CanMetadata {
   uint32 can_id  = 1;
-  uint32 dlc     = 2;  // ISO-encoded DLC (0-15; 0-8 direct, 9=12B, 10=16B, …)
+  uint32 dlc     = 2;  // Actual payload byte count (0-8 classic CAN; 0-64 CAN FD),
+                        // NOT an ISO 11898-1 DLC code. Every sender in this codebase
+                        // transmits exactly this many bytes from `payload` -- fewer
+                        // bytes than `payload` truncates the frame. For CAN FD,
+                        // SocketCanDriver::WriteFrame rounds this up to the nearest
+                        // valid wire length (12/16/20/24/32/48/64) and zero-pads the
+                        // gap if it isn't already one of those 8 values; it does not
+                        // reach further into `payload` to do so, so dlc should
+                        // normally just equal payload.size().
   uint32 flags   = 3;  // CANFD_BRS=0x01, CANFD_ESI=0x02, CANFD_FDF=0x04
   uint32 channel = 4;  // 1-based trace channel; 0 = unknown/unset.
                         // Import stores the original channel instead of a
