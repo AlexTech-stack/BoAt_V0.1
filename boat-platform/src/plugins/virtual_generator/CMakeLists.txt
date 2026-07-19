@@ -1,0 +1,2 @@
+add_boat_plugin(virtual_generator virtual_generator_plugin.cpp)
+target_link_libraries(virtual_generator PRIVATE boat_plugin_sdk)

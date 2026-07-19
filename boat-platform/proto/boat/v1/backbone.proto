@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/frame.proto";
+
+/* BackboneFrame wraps a Frame with routing metadata for gateway-to-gateway
+   forwarding.  Each hop decrements hop_count; frames arriving with hop_count
+   == 0 or originating from the local gateway are silently dropped. */
+message BackboneFrame {
+  string origin_gateway_id = 1;  // ID of the gateway that first sent this
+  uint32 hop_count          = 2;  // remaining TTL; decremented each hop
+  uint64 sequence_number    = 3;  // monotonic per origin (loop dedup)
+  Frame frame               = 4;  // the actual frame
+}
+
+/* BackboneService — bidirectional streaming between gateway peers.
+   Each gateway connects to every peer; both sides send and receive
+   BackboneFrame messages on the same stream. */
+service BackboneService {
+  rpc Connect(stream BackboneFrame) returns (stream BackboneFrame);
+}

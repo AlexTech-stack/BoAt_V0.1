@@ -50,7 +50,7 @@ def api_blf_list():
     files = []
     for d in [_RECORDINGS_DIR, _EXPORT_DIR, _CONFIG_DIR, Path("/tmp"), Path.home(), Path.home() / "traces"]:
         try:
-            for pattern in ("*.blf", "*.asc", "*.trace"):
+            for pattern in ("*.blf", "*.asc", "*.trace", "*.pcapng"):
                 for f in Path(d).glob(pattern):
                     files.append(str(f))
         except Exception:
@@ -58,7 +58,7 @@ def api_blf_list():
     files = sorted(set(files))[:200]
     return {"files": files, "export_dir": str(_EXPORT_DIR)}
 
-_SUPPORTED_SUFFIXES = (".blf", ".asc", ".trace")
+_SUPPORTED_SUFFIXES = (".blf", ".asc", ".trace", ".pcapng")
 
 def _signal_preview(sig) -> dict[str, Any]:
     """UI-only preview of a discovered signal -- never written to the
@@ -89,7 +89,7 @@ def api_blf_analyze(body: dict):
     if not fp.exists():
         raise HTTPException(404, f"File not found: {fp}")
     if fp.suffix.lower() not in _SUPPORTED_SUFFIXES:
-        raise HTTPException(400, f"Unsupported format: {fp.suffix}. Supported: .blf, .asc, .trace")
+        raise HTTPException(400, f"Unsupported format: {fp.suffix}. Supported: .blf, .asc, .trace, .pcapng")
 
     bus_mapping_raw = body.get("bus_mapping", {})
     bus_mapping = {int(k): v for k, v in bus_mapping_raw.items()}
@@ -266,10 +266,11 @@ def api_blf_export(body: dict):
 
 @app.post("/api/blf/convert")
 def api_blf_convert(body: dict):
-    """Convert an analyzed .blf/.asc/.trace file into the Trace Editor's
-    binary trace format and drop it in _EXPORT_DIR (the Trace Editor's own
-    default save/scan location), so it shows up there with no Trace Editor
-    changes needed. Reuses the exact conversion `boat replay import` uses."""
+    """Convert an analyzed .blf/.asc/.trace/.pcapng file into the Trace
+    Editor's binary trace format and drop it in _EXPORT_DIR (the Trace
+    Editor's own default save/scan location), so it shows up there with no
+    Trace Editor changes needed. Reuses the exact conversion `boat replay
+    import` uses."""
     from boat.trace_replay import TraceReplayer, TraceReplayError
 
     path = body.get("path", "")
@@ -277,7 +278,7 @@ def api_blf_convert(body: dict):
     if not fp.exists():
         raise HTTPException(404, f"File not found: {fp}")
     if fp.suffix.lower() not in _SUPPORTED_SUFFIXES:
-        raise HTTPException(400, f"Unsupported format: {fp.suffix}. Supported: .blf, .asc, .trace")
+        raise HTTPException(400, f"Unsupported format: {fp.suffix}. Supported: .blf, .asc, .trace, .pcapng")
     if fp.suffix.lower() == ".trace":
         raise HTTPException(400, "File is already in the Trace Editor's binary format")
 
@@ -424,7 +425,7 @@ input:checked + .slider:before { transform:translateX(16px); }
 <div class="layout">
   <div class="sidebar">
     <div class="sidebar-toolbar">
-      <input id="file-path" type="text" placeholder="/path/to/trace.blf|.asc|.trace" style="flex:1;padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:12px"/>
+      <input id="file-path" type="text" placeholder="/path/to/trace.blf|.asc|.trace|.pcapng" style="flex:1;padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:12px"/>
       <button class="btn-primary" onclick="browseFile()">Browse</button>
     </div>
     <div class="sidebar-search" style="padding:8px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px">
@@ -450,7 +451,7 @@ input:checked + .slider:before { transform:translateX(16px); }
   <div class="main" id="main-content">
     <div class="empty-state" id="empty-state">
       <h2>No trace file analyzed</h2>
-      <p>Enter a path to a .blf/.asc/.trace file and click Analyze, or browse for files on the system.</p>
+      <p>Enter a path to a .blf/.asc/.trace/.pcapng file and click Analyze, or browse for files on the system.</p>
     </div>
     <div id="results" style="display:none">
       <div class="stat-grid" id="stats-bar"></div>
@@ -487,7 +488,7 @@ async function api(method, url, body) {
 async function browseFile() {
   const r = await api("GET","/api/blf/list");
   const files = r.files;
-  if (!files.length) { toast("No .blf/.asc/.trace files found on the system","error"); return; }
+  if (!files.length) { toast("No .blf/.asc/.trace/.pcapng files found on the system","error"); return; }
   const fp = prompt("Enter path or paste from known files:\n\n" + files.slice(0,30).join("\n"));
   if (!fp) return;
   document.getElementById("file-path").value = fp;
@@ -520,7 +521,7 @@ function numpyHint(numpyAvailable) {
 // file Stage 1 was just run against.
 async function runStage1() {
   const path = document.getElementById("file-path").value.trim();
-  if (!path) { toast("Enter a path to a .blf/.asc/.trace file","error"); return; }
+  if (!path) { toast("Enter a path to a .blf/.asc/.trace/.pcapng file","error"); return; }
 
   document.getElementById("empty-state").style.display = "none";
   document.getElementById("results").style.display = "none";

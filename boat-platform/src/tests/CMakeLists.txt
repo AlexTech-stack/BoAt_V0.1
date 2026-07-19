@@ -29,6 +29,17 @@ if(TARGET pdu_router)
 endif()
 catch_discover_tests(boat_unit_plugin_manager)
 
+add_executable(boat_unit_backbone_plugin unit/test_backbone_plugin.cpp)
+target_include_directories(boat_unit_backbone_plugin PRIVATE
+  ${CMAKE_SOURCE_DIR}/sdk/cpp/include)
+target_link_libraries(boat_unit_backbone_plugin PRIVATE Catch2::Catch2WithMain)
+if(TARGET backbone)
+  add_dependencies(boat_unit_backbone_plugin backbone)
+  target_compile_definitions(boat_unit_backbone_plugin PRIVATE
+    BACKBONE_SO="$<TARGET_FILE:backbone>")
+endif()
+catch_discover_tests(boat_unit_backbone_plugin)
+
 add_executable(boat_unit_signal_bus unit/test_signal_bus.cpp)
 target_link_libraries(boat_unit_signal_bus PRIVATE boat_core Catch2::Catch2WithMain)
 catch_discover_tests(boat_unit_signal_bus)
@@ -56,6 +67,14 @@ catch_discover_tests(boat_unit_sqlite_event_store)
 add_executable(boat_unit_com_signal unit/test_com_signal.cpp)
 target_link_libraries(boat_unit_com_signal PRIVATE boat_hil Catch2::Catch2WithMain)
 catch_discover_tests(boat_unit_com_signal)
+
+add_executable(boat_unit_scpi_device unit/test_scpi_device.cpp)
+target_link_libraries(boat_unit_scpi_device PRIVATE boat_hil Catch2::Catch2WithMain)
+catch_discover_tests(boat_unit_scpi_device)
+
+add_executable(boat_unit_modbus_device unit/test_modbus_device.cpp)
+target_link_libraries(boat_unit_modbus_device PRIVATE boat_hil Catch2::Catch2WithMain)
+catch_discover_tests(boat_unit_modbus_device)
 
 add_executable(boat_unit_ipc_channel_selector unit/test_ipc_channel_selector.cpp)
 target_link_libraries(boat_unit_ipc_channel_selector PRIVATE boat_ipc Catch2::Catch2WithMain)

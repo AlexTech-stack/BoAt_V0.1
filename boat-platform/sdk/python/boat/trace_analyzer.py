@@ -69,11 +69,14 @@ class TraceAnalyzer:
 
         Supports ``.blf``/``.asc`` (via python-can -- the same
         ``BLFReader``/``ASCReader`` classes ``trace_replay.py`` already uses
-        for the same purpose) and ``.trace`` (the gateway's own binary
-        format, via :meth:`TraceReplayer.parse_binary`). ``.trace`` files
-        may contain non-CAN frames (Ethernet/TCP/PDU); those are counted and
-        reported in ``analysis.errors``, not analyzed -- this tool is
-        CAN-focused. ``.pcap`` (Ethernet-only) is rejected outright.
+        for the same purpose), ``.trace`` (the gateway's own binary format,
+        via :meth:`TraceReplayer.parse_binary`), and ``.pcapng`` (via
+        :mod:`boat.pcapng` -- a pcapng file may carry both CAN and Ethernet
+        interfaces; only the CAN/CAN-FD records are analyzed here). Both
+        ``.trace`` and ``.pcapng`` may contain non-CAN frames
+        (Ethernet/TCP/PDU); those are counted and reported in
+        ``analysis.errors``, not analyzed -- this tool is CAN-focused.
+        ``.pcap`` (Ethernet-only) is rejected outright.
 
         A CAN ID observed on more than one channel is first tracked
         per-channel, then collapsed to a single entry via
@@ -87,12 +90,16 @@ class TraceAnalyzer:
             self._read_python_can(suffix, analysis, per_channel_stats)
         elif suffix == ".trace":
             self._read_trace_binary(analysis, per_channel_stats)
+        elif suffix == ".pcapng":
+            self._read_pcapng(analysis, per_channel_stats)
         elif suffix == ".pcap":
             raise ValueError(
                 ".pcap captures are Ethernet-only and not analyzed by this CAN-focused tool"
             )
         else:
-            raise ValueError(f"Unsupported format: {suffix} (expected .blf, .asc, or .trace)")
+            raise ValueError(
+                f"Unsupported format: {suffix} (expected .blf, .asc, .trace, or .pcapng)"
+            )
 
         analysis.can_stats = self._resolve_multi_channel_ids(per_channel_stats, analysis)
         analysis.unique_ids = len(analysis.can_stats)
@@ -161,6 +168,42 @@ class TraceAnalyzer:
         if skipped:
             analysis.errors.append(
                 f"skipped {skipped} non-CAN frame(s) (ETHERNET/TCP/PDU) -- not analyzed by this tool"
+            )
+
+    def _read_pcapng(
+        self, analysis: TraceAnalysis, stats: dict[tuple[int, int], CanIdStats]
+    ) -> None:
+        from boat.pcapng import PcapngError, PcapngReader
+
+        skipped = 0
+        try:
+            with PcapngReader(str(self._path)) as reader:
+                for record in reader:
+                    analysis.total_frames += 1
+                    if hasattr(record, "ethertype"):
+                        skipped += 1
+                        continue
+                    aid = record.arbitration_id
+                    ch = record.channel or 1
+                    key = (aid, ch)
+                    if key not in stats:
+                        stats[key] = CanIdStats(
+                            channel=ch,
+                            arbitration_id=aid,
+                            is_extended=record.is_extended_id,
+                            is_fd=record.is_fd,
+                        )
+                    s = stats[key]
+                    s.count += 1
+                    s.dlc_values.append(len(record.data))
+                    s.payload_samples.append(bytes(record.data))
+                    s.timestamps.append(record.timestamp)
+                    analysis.channels.add(ch)
+        except PcapngError as e:
+            raise ValueError(f"Invalid pcapng file: {e}") from e
+        if skipped:
+            analysis.errors.append(
+                f"skipped {skipped} non-CAN frame(s) (ETHERNET) -- not analyzed by this tool"
             )
 
     # ── Multi-channel duplicate resolution ──────────────────────────────

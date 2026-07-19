@@ -22,6 +22,7 @@
 #include "debug_service_impl.h"
 #include "ethernet_bus_registry.h"
 #include "ethernet_service_impl.h"
+#include "device_service_impl.h"
 #include "frame_service_impl.h"
 #include "rpc_audit_interceptor.h"
 #include "rpc_audit_log.h"
@@ -38,6 +39,7 @@
 #include "metrics_service_impl.h"
 #include "plugin/plugin_manager.h"
 #include "plugin_service_impl.h"
+#include "bus_signal_recorder.h"
 #include "replay_engine/replay_engine.h"
 #include "replay_service_impl.h"
 #include "scenario/scenario_loader.h"
@@ -212,6 +214,24 @@ int main() {
       node_manager.DispatchFrame(abi);
     });
 
+    // v9: Forward always-on signal-bus values to node plugins that implement
+    // on_signal (device setpoints/commands, e.g. "psu.main.voltage.set",
+    // "relay.kl15.set"). Numeric/bool signals only; plugins filter by name.
+    // Subscribed before any plugin is loaded so no publish races this setup.
+    signal_bus.Subscribe({}, [&node_manager](const boat::core::BusSignal& s) {
+      double value = 0.0;
+      if (const auto* d = std::get_if<double>(&s.value)) {
+        value = *d;
+      } else if (const auto* i = std::get_if<std::int64_t>(&s.value)) {
+        value = static_cast<double>(*i);
+      } else if (const auto* b = std::get_if<bool>(&s.value)) {
+        value = *b ? 1.0 : 0.0;
+      } else {
+        return;  // string/bytes are not deliverable as a double
+      }
+      node_manager.DispatchSignal(s.name.c_str(), value);
+    });
+
     // Load node plugins from BOAT_NODE_PLUGINS env var.
     // Entries are separated by commas.  Each entry may optionally append a JSON
     // config with '?':
@@ -255,6 +275,35 @@ int main() {
     }
     }
 
+  // Optional: record always-on bus signals (device measurements, etc.) into the
+  // event store so they can be replayed as named signals via
+  // `replay from-events --sim-id <tag>`. Off by default — no effect on the
+  // determinism seed test. Enable with BOAT_RECORD_BUS_SIGNALS=<sim_id>;
+  // narrow with BOAT_RECORD_BUS_PREFIXES=psu.,relay. (comma-separated).
+  std::unique_ptr<boat::replay::BusSignalRecorder> bus_recorder;
+  {
+    const char* rec_env = std::getenv("BOAT_RECORD_BUS_SIGNALS");
+    if (rec_env != nullptr && rec_env[0] != '\0') {
+      boat::replay::BusSignalRecorder::Config rc;
+      rc.simulation_id = rec_env;
+      const char* pfx_env = std::getenv("BOAT_RECORD_BUS_PREFIXES");
+      if (pfx_env != nullptr && pfx_env[0] != '\0') {
+        std::istringstream ps(pfx_env);
+        std::string p;
+        while (std::getline(ps, p, ',')) {
+          if (!p.empty()) rc.prefixes.push_back(p);
+        }
+      }
+      bus_recorder = std::make_unique<boat::replay::BusSignalRecorder>(
+          signal_bus, event_store, rc);
+      bus_recorder->Start();
+      std::fprintf(stderr,
+                   "[Gateway] Recording bus signals -> event store "
+                   "(sim_id=%s%s)\n",
+                   rec_env, rc.prefixes.empty() ? "" : ", filtered");
+    }
+  }
+
   // Replay transmits each trace frame straight through the single core sink.
   // The registry's RX dispatch then delivers it to node plugins' on_frame
   // (tagged self-sent), so plugins still observe replayed traffic without a
@@ -262,6 +311,15 @@ int main() {
   replay_controller.SetEventForwarder(
       [&frame_sink](const boat::core::Frame& core_frame) {
         frame_sink.Publish(core_frame);
+      });
+
+  // Event-store (signal-domain) replay re-publishes each recorded event as its
+  // original named signal on the always-on signal bus — so a replayed device
+  // curve (e.g. psu.main.voltage.meas) is observed by plugins/subscribers
+  // exactly as when it was recorded, rather than as synthetic CAN traffic.
+  replay_controller.SetSignalForwarder(
+      [&signal_bus](const std::string& name, double value) {
+        signal_bus.Publish(name, value);
       });
 
 
@@ -344,6 +402,7 @@ int main() {
   boat::gateway::PduServiceImpl pdu_impl(ctx);
   boat::gateway::DebugServiceImpl debug_impl(audit_log);
   boat::gateway::FrameServiceImpl frame_impl(ctx);
+  boat::gateway::DeviceServiceImpl device_impl(ctx);
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort("0.0.0.0:50051", grpc::InsecureServerCredentials());
@@ -368,6 +427,7 @@ int main() {
   builder.RegisterService(&pdu_impl);
   builder.RegisterService(&debug_impl);
   builder.RegisterService(&frame_impl);
+  builder.RegisterService(&device_impl);
 
   g_server = builder.BuildAndStart();
   g_scheduler = &sim.scheduler();

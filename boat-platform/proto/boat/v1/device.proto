@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package boat.v1;
+
+import "boat/v1/common.proto";
+
+/* DeviceService — structured control & observation of non-frame electrical
+   devices (power supplies, relays/contactors, generators, generic analog/
+   digital I/O). Devices live as named signals on the always-on signal bus;
+   this service is a device-shaped view over that convention, delegated by the
+   gateway to the `device_manager` plugin. Device state is discovered from
+   published measurement signals; controllable channels are driven by
+   publishing the corresponding setpoint signal. */
+
+enum DeviceKind {
+  DEVICE_KIND_UNSPECIFIED  = 0;
+  DEVICE_KIND_POWER_SUPPLY = 1;
+  DEVICE_KIND_RELAY        = 2;
+  DEVICE_KIND_GENERATOR    = 3;
+  DEVICE_KIND_GENERIC_IO   = 4;
+}
+
+/* One controllable and/or observable channel of a device, e.g. a power
+   supply's "voltage" (settable + readable) or "current" (readable). */
+message DeviceChannel {
+  string name      = 1;  // "voltage", "current", "state", "enable", ...
+  bool   settable  = 2;  // can be driven via SetControl
+  bool   readable  = 3;  // exposes a measured value
+  bool   has_value = 4;  // a measurement has been observed
+  double value     = 5;  // last observed value (valid when has_value)
+  string unit      = 6;  // optional engineering unit (V, A, rpm, ohm, ...)
+}
+
+message DeviceInfo {
+  string device_id = 1;  // "<kind>.<id>", e.g. "psu.main", "relay.kl15"
+  DeviceKind kind  = 2;
+  repeated DeviceChannel channels = 3;
+}
+
+message ListDevicesRequest {}
+message ListDevicesResponse { repeated DeviceInfo devices = 1; }
+
+message SetControlRequest {
+  string device_id = 1;
+  string channel   = 2;  // e.g. "voltage", "enable", "state"
+  double value     = 3;  // setpoint / command (relay: 0 = open, else closed)
+}
+message SetControlResponse { bool accepted = 1; ErrorDetail error = 2; }
+
+message ReadStateRequest  { string device_id = 1; }
+message ReadStateResponse { bool found = 1; DeviceInfo device = 2; }
+
+message StreamStateRequest { repeated string device_ids = 1; }  // empty = all
+message DeviceStateUpdate {
+  string device_id    = 1;
+  string channel      = 2;
+  double value        = 3;
+  uint64 timestamp_ns = 4;
+}
+
+service DeviceService {
+  rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+  rpc SetControl(SetControlRequest)   returns (SetControlResponse);
+  rpc ReadState(ReadStateRequest)     returns (ReadStateResponse);
+  rpc StreamState(StreamStateRequest) returns (stream DeviceStateUpdate);
+}

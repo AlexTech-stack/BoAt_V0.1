@@ -88,6 +88,14 @@ typedef void (*BoatFramePublishFn)(void* plugin_ctx, const BoatFrame* frame);
    "accept all".  NULL means "use v7 fallback" (backward compat). */
 typedef const char* (*BoatDeclaredBusesFn)(void* ctx);
 
+/* Callback: host delivers an always-on signal-bus value to a plugin.
+   The signal-bus analogue of on_frame — used by devices (power supplies,
+   relays, generators, ...) to receive setpoint/command signals such as
+   "psu.main.voltage.set" or "relay.kl15.set".  The plugin filters by name
+   (typically a prefix).  Only numeric and bool signals are delivered (bool
+   as 0.0/1.0); string and bytes signals are skipped.  Added in ABI v9. */
+typedef void (*BoatSignalReceiveFn)(void* ctx, const char* name, double value);
+
 #ifdef __cplusplus
 }
 

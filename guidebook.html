@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BoAt — Guidebook</title>
+<style>
+:root {
+  --bg:     #0d1117;
+  --panel:  #161b22;
+  --border: #30363d;
+  --text:   #e6edf3;
+  --muted:  #8b949e;
+  --blue:   #58a6ff;
+  --green:  #3fb950;
+  --yellow: #d29922;
+  --red:    #f85149;
+  --purple: #d2a8ff;
+  --orange: #ffa657;
+  --teal:   #4dd0c8;
+  --mono:   "SFMono-Regular",Consolas,"Liberation Mono",monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; scroll-padding-top:56px; }
+body {
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  font-size:14px; line-height:1.6;
+}
+header {
+  position:sticky; top:0; z-index:10;
+  height:46px; background:var(--panel); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 16px; gap:12px;
+}
+.logo { font-weight:700; color:var(--blue); font-size:16px; }
+.subtitle { color:var(--muted); font-size:13px; }
+.spacer { flex:1; }
+.hdr-note { color:var(--muted); font-size:11px; font-family:var(--mono); }
+
+.layout { display:flex; max-width:1240px; margin:0 auto; align-items:flex-start; }
+nav.toc {
+  position:sticky; top:46px; width:250px; flex-shrink:0;
+  max-height:calc(100vh - 46px); overflow-y:auto;
+  padding:20px 8px 40px 16px; border-right:1px solid var(--border);
+  font-size:12px;
+}
+nav.toc .toc-group { color:var(--muted); font-weight:600; text-transform:uppercase;
+  font-size:10px; letter-spacing:.8px; margin:14px 0 4px 8px; }
+nav.toc a { display:block; color:var(--text); text-decoration:none;
+  padding:3px 8px; border-radius:4px; }
+nav.toc a:hover { background:var(--panel); color:var(--blue); }
+nav.toc a.sub { padding-left:20px; color:var(--muted); }
+nav.toc a.sub:hover { color:var(--blue); }
+
+main { flex:1; min-width:0; padding:28px 32px 120px; }
+h1 { font-size:26px; margin-bottom:6px; }
+h2 { font-size:19px; margin:44px 0 12px; color:var(--blue);
+  border-bottom:1px solid var(--border); padding-bottom:8px; }
+h3 { font-size:15px; margin:26px 0 8px; color:var(--text); }
+h4 { font-size:13px; margin:16px 0 6px; color:var(--purple); }
+p, li { color:var(--text); }
+p { margin-bottom:10px; }
+ul, ol { margin:0 0 12px 22px; }
+li { margin-bottom:5px; }
+a { color:var(--blue); }
+code {
+  font-family:var(--mono); font-size:12px; background:var(--panel); border:1px solid var(--border);
+  border-radius:3px; padding:1px 5px; color:var(--orange); white-space:nowrap;
+}
+pre {
+  font-family:var(--mono); font-size:12px; background:var(--panel); border:1px solid var(--border);
+  border-radius:6px; padding:10px 14px; overflow-x:auto; margin:10px 0 14px; color:var(--green);
+  line-height:1.5;
+}
+pre code { background:none; border:none; padding:0; color:inherit; white-space:pre; }
+.callout {
+  background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--blue);
+  border-radius:6px; padding:10px 14px; margin:10px 0 14px; font-size:13px;
+}
+.callout.warn  { border-left-color:var(--red); }
+.callout.tip   { border-left-color:var(--green); }
+.callout.note  { border-left-color:var(--yellow); }
+table { width:100%; border-collapse:collapse; font-size:13px; margin:8px 0 16px; }
+th, td { text-align:left; padding:6px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+td code { white-space:nowrap; }
+.pill { display:inline-block; padding:1px 8px; border-radius:10px; font-size:10px;
+  font-weight:600; text-transform:uppercase; vertical-align:middle; margin-left:6px; }
+.pill.gw   { background:#1c3a1c; color:var(--green); }
+.pill.solo { background:#1c3333; color:var(--teal); }
+.pill.dep  { background:#3a2d1c; color:var(--yellow); }
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:12px; margin:12px 0 18px; }
+.card {
+  background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:14px 16px;
+}
+.card h4 { margin:0 0 6px; color:var(--text); font-size:14px; }
+.card .port { font-family:var(--mono); color:var(--blue); font-size:12px; }
+.card p { color:var(--muted); font-size:12.5px; margin:6px 0 0; }
+.faq-item { margin-bottom:8px; background:var(--panel); border:1px solid var(--border);
+  border-radius:8px; overflow:hidden; }
+.faq-item summary { cursor:pointer; padding:10px 14px; font-weight:600; font-size:13.5px;
+  list-style-position:inside; }
+.faq-item summary:hover { color:var(--blue); }
+.faq-item .faq-body { padding:2px 16px 12px 16px; font-size:13px; color:var(--text);
+  border-top:1px solid var(--border); padding-top:10px; }
+.kbd-path { font-family:var(--mono); font-size:12px; color:var(--purple); }
+.hero {
+  background:linear-gradient(180deg, #101724 0%, var(--bg) 100%);
+  border:1px solid var(--border); border-radius:10px; padding:22px 26px; margin:14px 0 8px;
+}
+.hero .big-boat { font-size:40px; float:right; margin-left:16px; }
+.hero p { font-size:14.5px; }
+.toplink { font-size:11px; color:var(--muted); text-decoration:none; float:right; margin-top:6px; }
+.toplink:hover { color:var(--blue); }
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+@media (max-width: 900px) {
+  nav.toc { display:none; }
+  main { padding:20px 18px 80px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">⛵ BoAt</span>
+  <span class="subtitle">Guidebook — Setup · Features · How-Tos · FAQ</span>
+  <span class="spacer"></span>
+  <span class="hdr-note">deterministic automotive simulation &amp; testing platform</span>
+</header>
+
+<div class="layout">
+
+<nav class="toc">
+  <div class="toc-group">Introduction</div>
+  <a href="#what-is-boat">What is BoAt?</a>
+  <a href="#concepts">Core concepts</a>
+
+  <div class="toc-group">Getting started</div>
+  <a href="#requirements">Requirements</a>
+  <a href="#build">Building the gateway</a>
+  <a href="#vcan">Virtual CAN setup</a>
+  <a href="#run-gateway">Running the gateway</a>
+  <a href="#install-cli">Installing SDK &amp; CLI</a>
+  <a href="#first-steps">First steps</a>
+
+  <div class="toc-group">User interfaces</div>
+  <a href="#web-uis">Gateway Web UIs</a>
+  <a href="#tools">Standalone Tools</a>
+  <a href="#cli">Command line (boat)</a>
+
+  <div class="toc-group">How-To collection</div>
+  <a href="#howto-simulation">Run a simulation</a>
+  <a href="#howto-frames">Send &amp; watch frames</a>
+  <a href="#howto-record">Record a trace</a>
+  <a href="#howto-replay-can">Replay a CAN trace</a>
+  <a href="#howto-replay-eth">Replay an Ethernet pcap</a>
+  <a href="#howto-pcapng">Mixed traces with PCAPNG</a>
+  <a href="#howto-edit-trace">Edit a trace</a>
+  <a href="#howto-analyze-can">Analyze a CAN trace</a>
+  <a href="#howto-analyze-eth">Analyze an Ethernet trace</a>
+  <a href="#howto-pdu-db">Build a PDU database</a>
+  <a href="#howto-pdu-routing">Set up PDU routing</a>
+  <a href="#howto-cantp">Diagnostics with CAN-TP</a>
+  <a href="#howto-devices">Drive devices (PSU / relay)</a>
+  <a href="#howto-hardware">Use real hardware</a>
+  <a href="#howto-tests">Run the test suites</a>
+  <a href="#howto-ai">AI assistants</a>
+
+  <div class="toc-group">Reference</div>
+  <a href="#ports">Ports &amp; services</a>
+  <a href="#envvars">Environment variables</a>
+  <a href="#formats">Trace file formats</a>
+  <a href="#faq">FAQ</a>
+  <a href="#more-docs">Further reading</a>
+</nav>
+
+<main>
+
+<h1>The BoAt Guidebook</h1>
+<p style="color:var(--muted)">A manual for people who want to understand what BoAt is,
+what it can do, and how to actually use it. It complements — and links to — the more
+detailed how-tos and architecture documents in the repository; it does not replace them.</p>
+
+<div class="callout note">
+  <strong>Work in progress.</strong> BoAt is under active development. APIs, configuration,
+  and behavior may change without notice — when this guidebook and reality disagree,
+  trust <code>--help</code> output and the in-repo docs, then please fix the guidebook.
+</div>
+
+<!-- ═══════════════════════════ INTRODUCTION ═══════════════════════════ -->
+
+<h2 id="what-is-boat">What is BoAt?</h2>
+
+<div class="hero">
+  <span class="big-boat">⛵</span>
+  <p><strong>BoAt</strong> is a deterministic automotive simulation and testing platform
+  for Software-in-the-Loop (SIL), Hardware-in-the-Loop (HIL), and CI/CD validation
+  pipelines. At its core sits a <strong>tick-based simulation gateway</strong>
+  (<code>boat_gateway</code>, C++20) that bridges virtual and physical CAN / CAN&nbsp;FD /
+  Ethernet networks, exposes a <strong>gRPC API</strong>, and is driven by a
+  <strong>Python SDK and CLI</strong>. Custom node and protocol logic is loaded at runtime
+  as <strong>plugins</strong>.</p>
+</div>
+
+<p>In practice, BoAt lets you:</p>
+<ul>
+  <li><strong>Simulate ECU networks</strong> — run deterministic, tick-scheduled simulations
+    of CAN/Ethernet traffic, with seeded reproducibility (same seed → bit-identical output).</li>
+  <li><strong>Bridge virtual and real buses</strong> — the same gateway drives
+    <code>vcan0</code> in CI and a PEAK/Kvaser adapter on the bench.</li>
+  <li><strong>Record, edit, and replay traffic</strong> — capture live traffic to
+    ASC/BLF/PCAP/PCAPNG, inspect and modify it frame-by-frame, and play it back onto any
+    interface, with filtering and IP/MAC rewriting for Ethernet.</li>
+  <li><strong>Reverse-engineer unknown traffic</strong> — the trace analyzers detect cycle
+    times, AUTOSAR counters/CRCs, signal boundaries, DoIP/SOME/IP services, and PDU
+    multiplexing from raw captures.</li>
+  <li><strong>Speak automotive protocols</strong> — AUTOSAR-style PDU routing with I-PDU
+    groups and COM signal packing, ISO 15765-2 (CAN-TP) diagnostics, SOME/IP, TCP —
+    all as plugins.</li>
+  <li><strong>Test systematically</strong> — a system test runner (<code>boat test</code>),
+    fault injection, metrics, and an event store for post-run analysis.</li>
+</ul>
+
+<h2 id="concepts">Core concepts</h2>
+
+<h3>The gateway</h3>
+<p><code>boat_gateway</code> is the single long-running process everything else talks to.
+At startup it inspects the interfaces you hand it (<code>BOAT_CAN_INTERFACES</code>,
+<code>BOAT_ETH_INTERFACES</code>): names matching <code>vcan*</code> get a virtual CAN
+driver, everything else a physical SocketCAN driver. It serves gRPC on
+<code>0.0.0.0:50051</code>.</p>
+
+<h3>Frames — one type for every bus</h3>
+<p>All traffic is represented by a single unified frame type
+(<code>boat.v1.Frame</code>) with a <code>bus_type</code> discriminator:
+<code>CAN</code>, <code>CANFD</code>, <code>ETHERNET</code>, <code>TCP</code>,
+<code>PDU</code>. The same type is used on the wire (gRPC <code>FrameService</code>),
+in trace files, and inside the gateway. That is why one CLI verb
+(<code>boat frame send / subscribe</code>) covers every bus type.</p>
+
+<h3>Plugins — core owns transport, plugins own conversations</h3>
+<p>The gateway core does exactly one thing with frames: stateless transport on and off
+the wire. Everything stateful — TCP connections, ISO-TP segmentation, PDU routing
+schedules, SOME/IP services — lives in <code>.so</code> plugins loaded at runtime.
+Plugins receive frames via <code>on_frame</code> (filtered to the bus types they
+declare) and publish via a frame publisher that feeds the core's single
+<code>FrameSink</code> — the only path any frame takes to reach a bus.</p>
+<p>Two plugin managers run concurrently: a <strong>simulation-scoped</strong> one (loaded
+per scenario, ticked deterministically by the simulation scheduler, torn down with the
+simulation) and an <strong>always-on node manager</strong> (its own tick thread; hosts
+persistent plugins like CAN-TP and the PDU router that must react to bus traffic even
+with no simulation running). Plugins take JSON config appended to their path:</p>
+<pre><code>BOAT_NODE_PLUGINS=./pdu_router.so,./can_tp.so?{"iface":"vcan0"}</code></pre>
+
+<h3>PDU database</h3>
+<p>A JSON file (schema: <span class="kbd-path">boat-platform/config/pdu_db.schema.json</span>)
+describing messages and signals — names, CAN IDs, bit positions, byte order,
+scaling, cycle times, E2E protection. It is what the Commander UI, the PDU router,
+<code>boat db</code>, and the PDU Editor all read and write. You can create one by hand,
+in the <a href="#tools">PDU Editor</a>, by converting an industry
+<code>.dbc</code> file, or by letting the <a href="#howto-analyze-can">Trace Analyzer</a>
+reverse-engineer one from a recording.</p>
+
+<h3>Traces</h3>
+<p>A <em>trace</em> is recorded bus traffic. BoAt reads/writes the industry formats
+(Vector <code>.asc</code>/<code>.blf</code> for CAN, <code>.pcap</code>/<code>.pcapng</code>
+for Ethernet — and <code>.pcapng</code> for <em>mixed</em> CAN+Ethernet) and has its own
+internal <code>.trace</code> binary format (length-prefixed <code>boat.v1.Frame</code>
+records) that the replay engine consumes. See <a href="#formats">Trace file formats</a>.</p>
+
+<h3>Determinism</h3>
+<p>The scheduler is tick-based and all randomness is seeded. Running the same scenario
+with the same seed twice produces <em>bit-identical</em> output — this is enforced by a
+dedicated test (<code>boat_determinism_seed</code>) and is the property that makes replay
+and CI regression comparison trustworthy.</p>
+
+<!-- ═══════════════════════════ GETTING STARTED ═══════════════════════════ -->
+
+<h2 id="requirements">Requirements</h2>
+
+<p>BoAt's gateway builds and runs on <strong>Linux</strong> (SocketCAN is a Linux
+subsystem). The Python SDK/CLI and the web tools run anywhere Python ≥ 3.11 runs, but
+need a gateway to talk to for anything live.</p>
+
+<table>
+  <tr><th>Dependency</th><th>Minimum</th><th>Install</th></tr>
+  <tr><td>CMake</td><td>3.24</td><td>Kitware binary release or APT repo — <strong>Ubuntu 22.04's stock 3.22 is too old</strong></td></tr>
+  <tr><td>Ninja</td><td>any</td><td><code>apt install ninja-build</code></td></tr>
+  <tr><td>GCC / G++ (C++20)</td><td>11</td><td><code>apt install build-essential</code></td></tr>
+  <tr><td>libacl1-dev</td><td>any</td><td><code>apt install libacl1-dev</code></td></tr>
+  <tr><td>Rust (via rustup)</td><td>1.78</td><td><code>curl -sSf https://sh.rustup.rs | sh</code></td></tr>
+  <tr><td>Python</td><td>3.11</td><td>for SDK, CLI, web UIs and tools</td></tr>
+  <tr><td>python-can</td><td>4.0</td><td>optional — only needed for <code>.asc</code>/<code>.blf</code> reading/writing</td></tr>
+</table>
+
+<div class="callout">
+  <strong>Why Rust?</strong> BoAt's own code contains no Rust. Cargo is a build-time-only
+  transitive dependency of <a href="https://github.com/eclipse-iceoryx/iceoryx2">iceoryx2</a>,
+  which provides zero-copy shared-memory IPC for payloads &gt; 4 KB at runtime. Use
+  <code>rustup</code>, not the distro <code>cargo</code> package (often too old).
+</div>
+
+<h2 id="build">Building the gateway</h2>
+
+<pre><code>cd boat-platform
+cmake --preset debug          # or: release, asan, tsan, coverage
+cmake --build --preset debug</code></pre>
+
+<p>The gateway binary lands at
+<span class="kbd-path">build/debug/src/gateway/grpc_gateway/boat_gateway</span>
+(substitute the preset name for other builds).</p>
+
+<h2 id="vcan">Virtual CAN setup</h2>
+
+<p>For development without hardware, create virtual CAN interfaces once per boot:</p>
+
+<pre><code>sudo modprobe vcan
+sudo ip link add vcan0 type vcan &amp;&amp; sudo ip link set vcan0 up
+sudo ip link add vcan1 type vcan &amp;&amp; sudo ip link set vcan1 up   # as many as you like</code></pre>
+
+<div class="callout tip">
+  The <a href="#web-uis">Launcher UI</a> (port 8086) can create vcan/veth interfaces and
+  start/stop the gateway from the browser — it needs passwordless sudo for
+  <code>modprobe</code> and <code>ip link</code>.
+</div>
+
+<h2 id="run-gateway">Running the gateway</h2>
+
+<pre><code># Bare gateway on one virtual bus — gRPC serves on 0.0.0.0:50051
+BOAT_CAN_INTERFACES=vcan0 ./build/debug/src/gateway/grpc_gateway/boat_gateway
+
+# CAN + Ethernet + plugins (per-plugin JSON config after '?')
+BOAT_CAN_INTERFACES=vcan0,vcan1 \
+BOAT_ETH_INTERFACES=veth0 \
+BOAT_NODE_PLUGINS=./build/debug/src/plugins/pdu_router/pdu_router.so,./build/debug/src/plugins/can_tp/can_tp.so?{\"iface\":\"vcan0\"} \
+  ./build/debug/src/gateway/grpc_gateway/boat_gateway</code></pre>
+
+<p>See <a href="#envvars">Environment variables</a> for the full list, and
+<a href="#howto-hardware">Use real hardware</a> for physical CAN/Ethernet interfaces.</p>
+
+<h2 id="install-cli">Installing the SDK &amp; CLI</h2>
+
+<pre><code>pip install -e ./boat-platform/sdk/python[dev]
+pip install -e ./boat-platform/cli
+
+boat --help                        # verify
+boat --host 192.168.1.100:50051 sim status   # non-local gateway</code></pre>
+
+<p>Programmatic use:</p>
+<pre><code>from boat.client import BoAtClient
+from boat.frame_node import FrameNode
+
+node = FrameNode("localhost:50051")
+node.send_can("vcan0", 0x123, b"\xde\xad\xbe\xef")</code></pre>
+
+<h2 id="first-steps">First steps — a 5-minute smoke test</h2>
+
+<ol>
+  <li>Start the gateway on <code>vcan0</code> (previous section).</li>
+  <li>Check it sees the interface:
+    <pre><code>boat frame list-ifaces</code></pre></li>
+  <li>In one terminal, subscribe:
+    <pre><code>boat frame subscribe --bus-types can</code></pre></li>
+  <li>In another, send a frame:
+    <pre><code>boat frame send --bus-type can --can-id 0x123 --iface vcan0 --data AABBCCDD</code></pre></li>
+  <li>The subscriber prints the frame. Cross-check with the kernel's own view:
+    <pre><code>candump vcan0</code></pre></li>
+</ol>
+
+<p>If step 5 works, the whole chain — CLI → gRPC → gateway → SocketCAN — is healthy.
+Now start the web UIs (<code>./start_ui.sh</code>) and open the
+<a href="#web-uis">Dashboard</a> to see the same traffic in the browser.</p>
+
+<!-- ═══════════════════════════ USER INTERFACES ═══════════════════════════ -->
+
+<h2 id="web-uis">Gateway Web UIs <span class="pill gw">need gateway</span></h2>
+
+<p>These FastAPI single-file apps control or observe a running gateway. Start them all
+with <code>./start_ui.sh</code> (stop: <code>./stop_ui.sh</code>) or individually with
+<code>python3 ui/&lt;name&gt;.py</code>. They share a navigation bar, so once one is open
+you can hop between them.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <h4>Launcher <span class="port">:8086</span></h4>
+    <p>Network interface setup (create vcan/veth from the browser), gateway lifecycle
+    (start/stop the binary with chosen interfaces and plugins), and live gateway log
+    output. The natural starting point of a session.</p>
+  </div>
+  <div class="card">
+    <h4>Dashboard <span class="port">:8080</span></h4>
+    <p>Live CAN and Ethernet frame trace, BoAt bus-signal log, and event log — the
+    "what is happening on my buses right now" view.</p>
+  </div>
+  <div class="card">
+    <h4>Nodes (Control Panel) <span class="port">:8081</span></h4>
+    <p>Discovers the Python node scripts under <span class="kbd-path">boat-platform/nodes/</span>
+    and starts/stops them as subprocesses with per-node rolling logs — a process manager
+    for simulated ECUs.</p>
+  </div>
+  <div class="card">
+    <h4>Commander <span class="port">:8082</span></h4>
+    <p>Interactive frame sender. Loads a PDU database and lets you compose messages
+    signal-by-signal (Intel/Motorola packing done for you), or send raw CAN/CAN FD/
+    Ethernet frames by hand.</p>
+  </div>
+  <div class="card">
+    <h4>Recorder <span class="port">:8083</span></h4>
+    <p>Records live traffic to file: <strong>PCAPNG</strong> (default — CAN + Ethernet
+    mixed in one file), ASC, BLF, or legacy two-file PCAP, plus an optional
+    <code>.jsonl</code> sidecar for BoAt bus signals. Manages sessions and serves the
+    finished files for download.</p>
+  </div>
+  <div class="card">
+    <h4>Debug <span class="port">:8084</span></h4>
+    <p>gRPC traffic inspector — streams every RPC call made against the gateway
+    (method, caller, lifecycle, sizes, duration, status). Not in
+    <code>start_ui.sh</code>; run on demand: <code>python3 ui/debug.py</code>.</p>
+  </div>
+</div>
+
+<h2 id="tools">Standalone Tools <span class="pill solo">work without gateway</span></h2>
+
+<p>These tools operate on <em>files</em> — trace files and PDU databases — so they work
+completely offline. A gateway is only needed for optional actions that explicitly talk
+to one (e.g. "Push to Gateway"). Start them all with <code>./start_tools.sh</code>
+(stop: <code>./stop_tools.sh</code>).</p>
+
+<div class="card-grid">
+  <div class="card">
+    <h4>PDU Editor <span class="port">:8087</span></h4>
+    <p>Create, modify, validate (JSON-schema), and export PDU database files —
+    messages, signals, bit layouts, scaling, cycle times.</p>
+  </div>
+  <div class="card">
+    <h4>Trace Analyzer <span class="port">:8088</span></h4>
+    <p>CAN-focused analysis of <code>.blf</code>/<code>.asc</code>/<code>.trace</code>/
+    <code>.pcapng</code> files: per-ID statistics, cycle-time detection, multi-channel
+    duplicate resolution, AUTOSAR counter detection, and application-signal
+    reverse-engineering. Exports a PDU database skeleton and converts traces for the
+    Trace Editor.</p>
+  </div>
+  <div class="card">
+    <h4>Trace Editor <span class="port">:8089</span></h4>
+    <p>View, filter, edit, insert, and delete individual frames inside a
+    <code>.trace</code> file. Guided builders for UDP/ICMP Ethernet frames. Save to
+    file, export to PCAPNG, or push straight to a gateway. Has its own detailed
+    <a href="tools/trace_editor_howto.html">built-in howto</a> (also at
+    <code>http://localhost:8089/howto</code>).</p>
+  </div>
+  <div class="card">
+    <h4>Eth Analyzer <span class="port">:8090</span></h4>
+    <p>Ethernet-focused analysis of <code>.pcap</code>/<code>.pcapng</code> captures:
+    EtherType/VLAN histograms, node and topology inventory, TCP session reconstruction,
+    cyclic-vs-event UDP flow classification, DoIP/SOME/IP recognition, AUTOSAR
+    PDU-multiplex detection, CSV export of every table.</p>
+  </div>
+  <div class="card">
+    <h4>dbc2boatjson <span class="port">(CLI)</span></h4>
+    <p>Self-contained converter from industry <code>.dbc</code> files to BoAt's PDU
+    database JSON. See <a href="#howto-pdu-db">Build a PDU database</a>.</p>
+  </div>
+</div>
+
+<h2 id="cli">Command line — <code>boat</code></h2>
+
+<p>The CLI talks to the gateway at <code>localhost:50051</code> by default; every command
+accepts <code>--host</code> and <code>--json</code> (script-friendly output, pipes nicely
+into <code>jq</code>) before the subcommand.</p>
+
+<table>
+  <tr><th>Command</th><th>Purpose</th></tr>
+  <tr><td><code>boat sim</code></td><td>Simulation lifecycle — create, start, pause, step, stop, state, list, watch</td></tr>
+  <tr><td><code>boat scenario</code></td><td>Scenario management — create, get, list, delete, validate</td></tr>
+  <tr><td><code>boat frame</code></td><td>Unified send / subscribe / list-ifaces across all bus types</td></tr>
+  <tr><td><code>boat trace</code></td><td>Recording (start/stop/status) and direct CAN replay (<code>boat trace replay</code>)</td></tr>
+  <tr><td><code>boat replay</code></td><td>Server-side replay — import, export, start, stream, pause, resume, seek, stop, from-events</td></tr>
+  <tr><td><code>boat pdu</code></td><td>PDU routing — routes, I-PDU groups, containers, send, subscribe</td></tr>
+  <tr><td><code>boat can-tp</code></td><td>ISO 15765-2 transport protocol — configure, send</td></tr>
+  <tr><td><code>boat db</code></td><td>PDU database inspection — list, show, signal-routes</td></tr>
+  <tr><td><code>boat plugin</code></td><td>Plugin management — register, list, info, unload</td></tr>
+  <tr><td><code>boat test</code></td><td>System test runner — list-environments, run</td></tr>
+  <tr><td><code>boat ai</code></td><td>LLM assistants — scenario generation, CLI help, bus-setup, plugin scaffolding</td></tr>
+  <tr><td><code>boat can</code> / <code>boat eth</code> <span class="pill dep">deprecated</span></td><td>Thin wrappers kept for compatibility — use <code>boat frame</code></td></tr>
+</table>
+
+<p>Full CLI walkthrough: <span class="kbd-path">boat-platform/cli/howto_cli.md</span>.
+Shell completion: <code>boat --install-completion</code> (Typer-generated, bash/zsh/fish).</p>
+
+<!-- ═══════════════════════════ HOW-TO COLLECTION ═══════════════════════════ -->
+
+<h2 id="howto-simulation">How-To: Run a simulation</h2>
+
+<pre><code># Create and start a simulation from a scenario
+boat sim create --scenario-id my_scenario
+boat sim start --simulation-id &lt;id&gt;
+
+# Deterministic stepping (e.g. in tests): advance exactly 500 ticks
+boat sim pause --simulation-id &lt;id&gt;
+boat sim step  --simulation-id &lt;id&gt; --ticks 500
+
+# Observe and stop
+boat sim watch --simulation-id &lt;id&gt;
+boat sim stop  --simulation-id &lt;id&gt;</code></pre>
+
+<p>Scenarios declare which plugins the simulation loads; those plugins are ticked by the
+simulation scheduler and fully torn down at stop, so every run starts from a clean,
+reproducible state.</p>
+
+<h2 id="howto-frames">How-To: Send &amp; watch frames</h2>
+
+<pre><code># CAN (classic)
+boat frame send --bus-type can   --can-id 0x123 --iface vcan0 --data AABBCCDD
+
+# CAN FD — the bus type implies the FD flag, payloads up to 64 bytes
+boat frame send --bus-type canfd --can-id 0x123 --iface vcan0 \
+  --data 00112233445566778899AABBCCDDEEFF
+
+# Ethernet
+boat frame send --bus-type ethernet --ethertype 0x0800 --dst-ip 10.0.0.1 --data AABB
+
+# Subscribe (streaming; Ctrl+C to stop) — one or several bus types
+boat frame subscribe --bus-types can
+boat frame subscribe --bus-types can,ethernet</code></pre>
+
+<p>GUI alternative: the <strong>Commander</strong> (port 8082) does the same
+interactively, including signal-level message composition from a PDU database.
+The <strong>Dashboard</strong> (port 8080) is the GUI equivalent of
+<code>subscribe</code>.</p>
+
+<h2 id="howto-record">How-To: Record a trace</h2>
+
+<h3>With the Recorder UI (port 8083)</h3>
+<ol>
+  <li>Choose a format — <strong>PCAPNG</strong> (default) records CAN <em>and</em>
+    Ethernet into one file; ASC/BLF are CAN-only; legacy PCAP writes two separate
+    single-bus files.</li>
+  <li>Tick the CAN buses and (for PCAPNG/PCAP) Ethernet interfaces to record.</li>
+  <li>Optionally include BoAt bus signals as a <code>.jsonl</code> sidecar.</li>
+  <li><strong>Start Recording</strong>; stop it from Active Sessions; download the files
+    from the session history table.</li>
+</ol>
+
+<h3>With the CLI</h3>
+<pre><code>boat trace start --format pcapng --buses vcan0,vcan1 --eth veth0
+# ... traffic happens ...
+boat trace stop
+boat trace status</code></pre>
+
+<div class="callout note">
+  ASC/BLF recording requires <code>python-can</code>
+  (<code>pip install python-can</code>). PCAPNG and PCAP recording have no extra
+  dependency.
+</div>
+
+<h2 id="howto-replay-can">How-To: Replay a CAN trace</h2>
+
+<p>Two hard-separated paths exist — pick by need:</p>
+
+<table>
+  <tr><th></th><th><code>boat trace replay</code> (direct)</th><th><code>boat replay import</code> + <code>start</code>/<code>stream</code> (server-side)</th></tr>
+  <tr><td>Bus types</td><td>CAN only (<code>.asc</code>/<code>.blf</code>, CAN records of <code>.pcapng</code>)</td><td>CAN + Ethernet, all formats</td></tr>
+  <tr><td>Timing</td><td>Client-paced, ~5-8 ms gRPC round-trip per frame</td><td>Gateway tick timer, no per-frame overhead</td></tr>
+  <tr><td>Control</td><td>Ctrl+C only</td><td>pause / resume / seek / stop, repeatable without re-upload</td></tr>
+  <tr><td>Best for</td><td>Quick ad-hoc replays</td><td>Ethernet, high speed, long traces, remote gateways</td></tr>
+</table>
+
+<pre><code># Direct: channel 1 → vcan0; filter by channel/ID; speed control; loop
+boat trace replay recording.blf --buses vcan0
+boat trace replay recording.blf --channel 4 --id 0x040,0x0C0 --speed 0.2 --buses can0
+boat trace replay recording.blf --loop --buses vcan0
+
+# Server-side: import once, replay many times
+boat replay import recording.blf --trace-id demo
+boat replay stream --trace demo --buses vcan0
+boat replay pause / resume / stop</code></pre>
+
+<p>Channel mapping is positional: trace channel <em>N</em> maps to the <em>N</em>-th name
+in <code>--buses</code> (1-based; last one is the fallback). Interface targeting is a
+<em>replay-time</em> decision — the imported trace stores channels, not interfaces, so
+one import replays onto any hardware.</p>
+
+<h2 id="howto-replay-eth">How-To: Replay an Ethernet pcap</h2>
+
+<p>Ethernet replay is server-side only. IP addresses are rewritten at import time,
+MAC addresses are assigned at playback time:</p>
+
+<pre><code># Import: rewrite every packet to the given src/dst IPs
+boat replay import capture.pcap --trace-id demo \
+  --replay-src-ip 192.168.1.1 --replay-dst-ip 192.168.1.100
+
+# Play onto an interface (must be registered via BOAT_ETH_INTERFACES)
+boat replay stream --trace demo --eth-iface eth0
+
+# Verify on the wire
+tcpdump -i eth0</code></pre>
+
+<p>Power tools, all on <code>import</code>: <code>--ip-map old=new,...</code> (per-address
+table), <code>--ethertype ipv4,arp</code>, <code>--protocol udp,icmpv6</code>,
+<code>--src-port</code>/<code>--dst-port</code>, and post-rewrite
+<code>--ip-filter</code>/<code>--src-ip-filter</code>/<code>--dst-ip-filter</code>.
+Per-IP MAC assignment is a playback flag: <code>--mac-map 192.168.0.100=02:de:ad:be:ef:01</code>
+on <code>stream</code>/<code>start</code>. IPv4/IPv6 with UDP and ICMP are fully rebuilt
+with recalculated checksums; fragments and IPv6 extension headers are handled.</p>
+
+<p>The complete reference with the exact processing order lives at
+<span class="kbd-path">boat-platform/docs/howto/replay.md</span>.</p>
+
+<h2 id="howto-pcapng">How-To: Mixed CAN+Ethernet traces with PCAPNG</h2>
+
+<p>PCAPNG is the one <em>open</em> format in BoAt's toolbox that carries CAN and Ethernet
+in a single file (one interface block per bus, one shared timeline) — and it opens
+directly in Wireshark, which makes it the right format for handing traces to people
+outside BoAt.</p>
+
+<ul>
+  <li><strong>Record</strong> — Recorder UI, format PCAPNG (the default), or
+    <code>boat trace start --format pcapng --buses vcan0 --eth veth0</code>.</li>
+  <li><strong>Import</strong> — <code>boat replay import capture.pcapng --trace-id demo</code>;
+    both bus types land in one server-side trace, replayable together.</li>
+  <li><strong>Export</strong> — turn any internal <code>.trace</code> back into an open file:
+    <pre><code>boat replay export /tmp/demo.trace out.pcapng</code></pre>
+    or click <strong>Export to PCAPNG</strong> in the Trace Editor. TCP/PDU frames have
+    no wire representation and are skipped (counted in the report).</li>
+  <li><strong>Analyze</strong> — both analyzers accept <code>.pcapng</code>; the Trace
+    Analyzer reads its CAN interfaces, the Eth Analyzer its Ethernet interfaces, each
+    reporting what it skipped.</li>
+  <li><strong>Replay CAN directly</strong> — <code>boat trace replay mixed.pcapng --buses vcan0</code>
+    replays the CAN records and skips the Ethernet ones.</li>
+</ul>
+
+<h2 id="howto-edit-trace">How-To: Edit a trace</h2>
+
+<ol>
+  <li>Get a <code>.trace</code> file. Any import creates one on the gateway under
+    <span class="kbd-path">/tmp/&lt;trace_id&gt;.trace</span>; or convert a
+    <code>.blf</code>/<code>.asc</code>/<code>.pcapng</code> locally via the Trace
+    Analyzer's <strong>Convert</strong> action.</li>
+  <li>Open the <strong>Trace Editor</strong> (port 8089) — the file dropdown
+    auto-populates from <code>/tmp</code>, <code>traces/</code>, and your home directory.</li>
+  <li>Filter (bus type, iface, CAN ID, time range), then <strong>Edit</strong> /
+    <strong>Insert After</strong> / <strong>Delete</strong> frames. DLC auto-syncs to the
+    payload; CAN FD lengths are validated; guided builders construct UDP/ICMP packets
+    with correct checksums for you.</li>
+  <li><strong>Save</strong>/<strong>Save As</strong> to disk, <strong>Export to
+    PCAPNG</strong> for external tools, or <strong>Push to Gateway</strong> to upload the
+    edited frames for replay:
+    <pre><code>boat replay start --trace &lt;trace_id&gt; --buses vcan0</code></pre></li>
+</ol>
+
+<div class="callout">
+  Push exists because <code>boat replay import</code> only accepts <em>source</em>
+  formats — it cannot re-ingest an already-converted <code>.trace</code>. Push uploads
+  the binary directly via <code>ImportTraceData</code>. Full details, field semantics,
+  and gotchas: <a href="tools/trace_editor_howto.html">Trace Editor howto</a>.
+</div>
+
+<h2 id="howto-analyze-can">How-To: Analyze a CAN trace (and reverse-engineer signals)</h2>
+
+<ol>
+  <li>Open the <strong>Trace Analyzer</strong> (port 8088), enter or browse to a
+    <code>.blf</code>/<code>.asc</code>/<code>.trace</code>/<code>.pcapng</code> file, and
+    run the staged analysis:</li>
+  <li><strong>Identify messages</strong> — per-CAN-ID statistics, cycle-time detection,
+    Cyclic/Spontaneous classification, and multi-channel duplicate resolution (the same
+    ID relayed by a physical gateway onto a second bus is collapsed to its original
+    source).</li>
+  <li><strong>Find AUTOSAR counters</strong> — detects rolling counters (and their
+    companion checksums/CRCs) inside payloads.</li>
+  <li><strong>Discover application signals</strong> — clusters the remaining payload bits
+    into candidate signals with byte order, signedness, and confidence estimates.</li>
+  <li>Export the result as a <strong>PDU database skeleton</strong> (JSON) — a starting
+    point you refine in the PDU Editor — or <strong>convert</strong> the trace to
+    <code>.trace</code> to hand it to the Trace Editor.</li>
+</ol>
+
+<h2 id="howto-analyze-eth">How-To: Analyze an Ethernet trace</h2>
+
+<ol>
+  <li>Open the <strong>Eth Analyzer</strong> (port 8090) and point it at a
+    <code>.pcap</code> or <code>.pcapng</code>.</li>
+  <li><strong>Analyze</strong> gives you: EtherType/VLAN histograms, MAC/IP node
+    inventory with role hints, UDP flows classified cyclic vs. event-driven, TCP
+    sessions reconstructed with client/server roles, and a DoIP / SOME/IP service
+    catalog.</li>
+  <li>If AUTOSAR PDU-multiplexed flows are detected, run the second stage to get a
+    per-Header-ID PDU catalog with sending behavior.</li>
+  <li>Every table exports to CSV.</li>
+</ol>
+
+<h2 id="howto-pdu-db">How-To: Build a PDU database</h2>
+
+<h3>From a DBC file</h3>
+<pre><code>python3 tools/dbc2boatjson.py \
+    boat-platform/config/pdu_db.schema.json \
+    my_vehicle.dbc  my_vehicle.json \
+    --bus "Powertrain_CAN" --bus-type CANFD --validate</code></pre>
+<p>Messages, signals, multiplexing, value tables, comments, and
+<code>GenMsgCycleTime</code> all map over; no external DBC library needed. Reference:
+<span class="kbd-path">boat-platform/docs/howto/dbc2boatjson.md</span>.</p>
+
+<h3>From scratch or from analysis</h3>
+<p>Use the <strong>PDU Editor</strong> (port 8087) to create/edit databases with live
+JSON-schema validation — or start from the Trace Analyzer's reverse-engineered export
+and clean it up there.</p>
+
+<h3>Inspect from the CLI</h3>
+<pre><code>boat db list
+boat db show --db pdu_db.json
+boat db signal-routes --db pdu_db.json --signal MotorSpeed</code></pre>
+
+<h2 id="howto-pdu-routing">How-To: Set up PDU routing</h2>
+
+<p>Requires the <code>pdu_router.so</code> plugin loaded on the gateway
+(via <code>BOAT_NODE_PLUGINS</code>).</p>
+
+<pre><code># Route PDU 0x100 onto vcan0, cyclically every 100 ms
+boat pdu route --id 0x100 --transport can --iface vcan0 --send-type cyclic --cycle-ms 100
+
+# Group PDUs and switch them together (AUTOSAR I-PDU groups)
+boat pdu group --id 1 --name "Safety" --pdu 0x100 --pdu 0x200 --disabled
+boat pdu enable-group --id 1
+boat pdu list-groups
+boat pdu list-routes</code></pre>
+
+<p>The router supports cyclic / onChange / mixed transmission schedules, COM signal
+packing (Intel &amp; Motorola), E2E CRC protection, and deadline monitoring.</p>
+
+<h2 id="howto-cantp">How-To: Diagnostics with CAN-TP (ISO 15765-2)</h2>
+
+<p>Requires the <code>can_tp.so</code> plugin (note the JSON config selecting its
+interface):</p>
+
+<pre><code>BOAT_NODE_PLUGINS=./build/debug/src/plugins/can_tp/can_tp.so?{\"iface\":\"vcan0\"} ...
+
+# Configure a session (typical OBD tester ↔ ECU addressing)
+boat can-tp configure --nsdu-id diag --source-addr 0x7E0 --target-addr 0x7E8
+
+# Send a payload larger than one frame — segmentation/flow control is automatic
+boat can-tp send --nsdu-id diag --source-addr 0x7E0 --target-addr 0x7E8 \
+  --data 0123456789ABCDEF0123456789ABCDEF</code></pre>
+
+<p>Because CAN-TP runs in the always-on node manager, it answers incoming diagnostic
+requests even when no simulation is active.</p>
+
+<h2 id="howto-devices">How-To: Drive a power supply, relay, or generator</h2>
+
+<p>Beyond buses and frames, BoAt models <strong>electrical devices</strong> — programmable
+DC power supplies, relays/contactors, generators, electronic loads, generic I/O. They are
+<em>not</em> a new bus type: each device lives as <strong>named signals on the always-on
+signal bus</strong> following <code>&lt;kind&gt;.&lt;id&gt;.&lt;channel&gt;[.&lt;role&gt;]</code>
+(e.g. <code>psu.main.voltage.set</code> in, <code>psu.main.voltage.meas</code> out). A typed
+<strong>DeviceService</strong> (<code>boat device</code>) gives a device-shaped view over that
+convention, backed by deterministic <strong>virtual</strong> models or real
+<strong>SCPI</strong> hardware — the same control surface either way.</p>
+
+<h3>Virtual power supply + ignition relay</h3>
+<pre><code>GW=build/debug/src/gateway/grpc_gateway/boat_gateway
+P=build/debug/src/plugins
+
+# Devices are signal-domain — no CAN interface needed.
+BOAT_CAN_INTERFACES="" \
+BOAT_NODE_PLUGINS="$P/device_manager/device_manager.so,\
+$P/virtual_psu/virtual_psu.so?{\"id\":\"main\",\"r_load\":3.0},\
+$P/virtual_relay/virtual_relay.so?{\"id\":\"kl15\"}" \
+  $GW</code></pre>
+
+<pre><code>boat device list                       # discovered devices + channels (*=settable)
+boat device set psu.main voltage 24    # setpoint
+boat device set relay.kl15 state 1     # close the contact (0 = open)
+boat device read psu.main              # voltage=24 V, current=8 A  (24 V / 3 Ω)</code></pre>
+
+<p>The <code>device_manager</code> plugin discovers devices by observing their published
+measurements, and the <code>DeviceService</code> delegates to it (the same pattern
+<code>PduService</code> uses for <code>pdu_router</code>). Programmatically, use
+<code>from boat.device_node import DeviceNode</code>; for quick interactive use without a
+rebuild, the Python nodes <code>demo/virtual_psu_node.py</code> and
+<code>demo/virtual_relay_node.py</code> speak the same signals.</p>
+
+<h3>Ignition-gated restbus (KL15)</h3>
+<p>Wire a relay into the restbus so cyclic transmission follows the ignition, like a real
+vehicle:</p>
+<pre><code>python3 demo/restbus_simulator.py config/&lt;db&gt;.json --kl15-relay kl15
+boat device set relay.kl15 state 1     # ignition ON  → cyclic frames start
+boat device set relay.kl15 state 0     # ignition OFF → bus goes quiet</code></pre>
+
+<h3>Record &amp; replay device state</h3>
+<pre><code># record (run the gateway from boat-platform/ so boat_events.db lands here)
+BOAT_RECORD_BUS_SIGNALS=devrec BOAT_RECORD_BUS_PREFIXES=psu. \
+BOAT_NODE_PLUGINS="$P/virtual_psu/virtual_psu.so?{\"id\":\"main\",\"r_load\":3.0}" $GW
+# … drive psu.main voltage, then stop the gateway …
+
+# replay the recorded curve back onto the bus (as named signals, not fake frames)
+boat replay from-events --sim-id devrec --signal-id psu.main.voltage.meas -s accelerated -m 20</code></pre>
+
+<h3>Real hardware over SCPI</h3>
+<p><code>scpi_device</code> drives a bench supply / e-load over TCP (the LXI/raw-socket port,
+commonly <code>5025</code>) using the <em>same</em> signal contract as the virtual PSU:</p>
+<pre><code>BOAT_NODE_PLUGINS="$P/device_manager/device_manager.so,\
+$P/scpi_device/scpi_device.so?{\"id\":\"main\",\"host\":\"192.168.0.5\",\"port\":5025}" $GW
+boat device set psu.main voltage 5     # → VOLT 5 over SCPI; MEAS:VOLT?/MEAS:CURR? polled back</code></pre>
+
+<div class="callout note">
+  Physical devices are <strong>live-only</strong>: HIL-gated, excluded from the determinism
+  seed test, and never a replay target (a replay reconstitutes recorded state into a
+  <em>virtual</em> model). <code>gpio</code>/<code>modbus</code> are future
+  <code>IDeviceDriver</code> backends implementing the same seam.
+</div>
+
+<p>Details: <code>docs/howto/devices.md</code> and
+<code>docs/architecture/device-integration-plan.md</code>; system tests in
+<code>test/Devices.md</code> (run <code>python3 test/test_device_integration.py</code>).</p>
+
+<h2 id="howto-hardware">How-To: Use real hardware</h2>
+
+<h3>Physical CAN (PEAK, Kvaser, gs_usb — anything SocketCAN)</h3>
+<pre><code># Bring the interface up yourself (bitrate to match your bus)
+sudo ip link set can0 up type can bitrate 500000
+
+# CAN FD
+sudo ip link set can0 up type can bitrate 500000 dbitrate 2000000 fd on
+
+# Hand it to the gateway — non-vcan names get the physical driver automatically
+BOAT_CAN_INTERFACES=can0,vcan0 ./boat_gateway
+
+# Verify
+boat frame list-ifaces
+ip -d link show type can</code></pre>
+
+<h3>Physical Ethernet</h3>
+<p>Physical NICs use raw AF_PACKET sockets and need the <code>raw:</code> prefix plus the
+<code>CAP_NET_RAW</code> capability on the binary:</p>
+<pre><code>sudo setcap cap_net_raw+ep build/debug/src/gateway/grpc_gateway/boat_gateway
+BOAT_ETH_INTERFACES=raw:eth0 ./boat_gateway</code></pre>
+<div class="callout warn">
+  Prefer <code>setcap</code> over running the gateway as root — a root gateway leaves
+  root-owned trace files under <code>/tmp</code> that block later non-root runs.
+  <code>setcap</code> is stored on the binary's inode, so <strong>reapply it after every
+  rebuild</strong>. Virtual <code>veth</code> interfaces need no prefix and no capability.
+</div>
+
+<h2 id="howto-tests">How-To: Run the test suites</h2>
+
+<pre><code># C++ (Catch2 via ctest) — from boat-platform/
+ctest --preset release --output-on-failure
+ctest --test-dir build/debug -R TestName --timeout 30 --output-on-failure
+ctest --test-dir build/debug -N                      # list tests
+
+# Python SDK + CLI
+pytest boat-platform/sdk/python/tests boat-platform/cli/tests -v
+
+# System tests against a live environment
+boat test list-environments
+boat test run --trace-format pcapng</code></pre>
+
+<p>Test binaries are named <code>boat_unit_*</code>, <code>boat_integration_*</code>,
+<code>boat_hil_*</code> (HIL tests need <code>BOAT_HIL_ENABLED=1</code> and hardware),
+and <code>boat_determinism_seed</code> — the one that runs the same seed twice and
+asserts bit-identical output. System-test conventions:
+<span class="kbd-path">test/Structure.md</span>.</p>
+
+<h2 id="howto-ai">How-To: AI assistants</h2>
+
+<p>The CLI ships optional LLM helpers (default backend: local Ollama):</p>
+<pre><code>boat ai config set --endpoint http://localhost:11434/v1 --model qwen2.5-coder:3b
+
+boat ai scenario "Create a CAN bus with two ECUs exchanging 0x100 and 0x200"
+boat ai cli      "How do I subscribe to CAN frames?"
+boat ai bus-setup "vcan0 with pdu_router"</code></pre>
+<p>Cost-control guidance for LLM usage lives at
+<span class="kbd-path">boat-platform/docs/ai/llm-cost-control.md</span>.</p>
+
+<!-- ═══════════════════════════ REFERENCE ═══════════════════════════ -->
+
+<h2 id="ports">Reference: Ports &amp; services</h2>
+
+<table>
+  <tr><th>Port</th><th>Service</th><th>Kind</th><th>Started by</th></tr>
+  <tr><td><code>50051</code></td><td>boat_gateway gRPC API</td><td>core</td><td>manually / Launcher</td></tr>
+  <tr><td><code>8080</code></td><td>Dashboard</td><td>gateway UI</td><td rowspan="5"><code>start_ui.sh</code></td></tr>
+  <tr><td><code>8081</code></td><td>Nodes (Control Panel)</td><td>gateway UI</td></tr>
+  <tr><td><code>8082</code></td><td>Commander</td><td>gateway UI</td></tr>
+  <tr><td><code>8083</code></td><td>Recorder</td><td>gateway UI</td></tr>
+  <tr><td><code>8086</code></td><td>Launcher</td><td>gateway UI</td></tr>
+  <tr><td><code>8084</code></td><td>Debug (gRPC inspector)</td><td>gateway UI</td><td>manually</td></tr>
+  <tr><td><code>8087</code></td><td>PDU Editor</td><td>standalone tool</td><td rowspan="4"><code>start_tools.sh</code></td></tr>
+  <tr><td><code>8088</code></td><td>Trace Analyzer</td><td>standalone tool</td></tr>
+  <tr><td><code>8089</code></td><td>Trace Editor</td><td>standalone tool</td></tr>
+  <tr><td><code>8090</code></td><td>Eth Analyzer</td><td>standalone tool</td></tr>
+</table>
+
+<h2 id="envvars">Reference: Environment variables</h2>
+
+<table>
+  <tr><th>Variable</th><th>Consumer</th><th>Meaning</th></tr>
+  <tr><td><code>BOAT_CAN_INTERFACES</code></td><td>gateway</td><td>Comma-separated CAN interfaces. <code>vcan*</code> → virtual driver, others → physical.</td></tr>
+  <tr><td><code>BOAT_ETH_INTERFACES</code></td><td>gateway</td><td>Comma-separated Ethernet interfaces. <code>raw:</code> prefix for physical NICs (needs CAP_NET_RAW).</td></tr>
+  <tr><td><code>BOAT_NODE_PLUGINS</code></td><td>gateway</td><td>Comma-separated <code>.so</code> paths for the always-on node manager, each optionally with <code>?{json}</code> config.</td></tr>
+  <tr><td><code>BOAT_NODE_TICK_MS</code> / <code>BOAT_NODE_TICK_US</code></td><td>gateway</td><td>Node tick interval (minimum cycle time; default 1 ms, µs wins if both set, practical floor ~100 µs).</td></tr>
+  <tr><td><code>BOAT_HIL_ENABLED=1</code></td><td>tests</td><td>Enables HIL test binaries that need real hardware.</td></tr>
+  <tr><td><code>BOAT_RECORD_BUS_SIGNALS</code></td><td>gateway</td><td>Record always-on bus signals (device measurements, etc.) into the event store under this sim-id tag; replay via <code>boat replay from-events</code>. Off by default.</td></tr>
+  <tr><td><code>BOAT_RECORD_BUS_PREFIXES</code></td><td>gateway</td><td>Comma-separated name prefixes to narrow bus-signal recording (e.g. <code>psu.,relay.</code>). Empty = record all numeric signals.</td></tr>
+  <tr><td><code>BOAT_GATEWAY</code></td><td>UIs/tools</td><td>Gateway gRPC address (default <code>localhost:50051</code>).</td></tr>
+  <tr><td><code>BOAT_GATEWAY_BIN</code></td><td>Launcher</td><td>Path to the gateway binary to start.</td></tr>
+  <tr><td><code>BOAT_TRACES_DIR</code></td><td>Recorder</td><td>Output directory for recordings (default <code>traces/</code>).</td></tr>
+  <tr><td><code>BOAT_*_PORT</code></td><td>each UI/tool</td><td>Per-service HTTP port override (e.g. <code>BOAT_REC_PORT</code>, <code>BOAT_TRACE_EDITOR_PORT</code>, <code>BOAT_PDU_EDITOR_PORT</code>, <code>BOAT_ETH_ANALYZER_PORT</code>, <code>BOAT_LAUNCHER_PORT</code>).</td></tr>
+</table>
+
+<h2 id="formats">Reference: Trace file formats</h2>
+
+<table>
+  <tr><th>Format</th><th>CAN</th><th>Ethernet</th><th>Mixed</th><th>Read</th><th>Write</th><th>Notes</th></tr>
+  <tr><td><code>.pcapng</code></td><td>✓</td><td>✓</td><td><strong>✓</strong></td><td>✓</td><td>✓</td><td>Open, Wireshark-native; the recommended exchange format. Nanosecond timestamps.</td></tr>
+  <tr><td><code>.asc</code> (Vector)</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>Text; needs <code>python-can</code>.</td></tr>
+  <tr><td><code>.blf</code> (Vector)</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>Binary; needs <code>python-can</code>.</td></tr>
+  <tr><td><code>.pcap</code> (classic)</td><td>✓*</td><td>✓</td><td>—</td><td>✓ (Eth)</td><td>✓</td><td>One link type per file — recorder writes CAN and Ethernet to two separate files. *CAN pcap written, not read.</td></tr>
+  <tr><td><code>.trace</code> (internal)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>Length-prefixed <code>boat.v1.Frame</code> protobufs; what the replay engine executes and the Trace Editor edits. Not for exchange — export to <code>.pcapng</code>.</td></tr>
+</table>
+
+<!-- ═══════════════════════════ FAQ ═══════════════════════════ -->
+
+<h2 id="faq">FAQ</h2>
+
+<details class="faq-item"><summary>Do I need a running gateway to use the web pages?</summary>
+<div class="faq-body">Depends which ones. The <strong>gateway UIs</strong> (Launcher,
+Dashboard, Nodes, Commander, Recorder — ports 8080-8086, <code>start_ui.sh</code>)
+control or observe a live gateway. The <strong>standalone tools</strong> (PDU Editor,
+Trace Analyzer, Trace Editor, Eth Analyzer — ports 8087-8090,
+<code>start_tools.sh</code>) work on files and run fine completely offline; only optional
+actions like "Push to Gateway" need one.</div></details>
+
+<details class="faq-item"><summary>What's the difference between <code>boat trace replay</code> and <code>boat replay import</code> + <code>start</code>?</summary>
+<div class="faq-body"><code>boat trace replay</code> reads the file locally and sends each
+CAN frame via gRPC, paced by the client — simple, but ~5-8 ms per frame and CAN only.
+<code>boat replay import</code> converts and uploads the trace once; <code>start</code>/
+<code>stream</code> then plays it on the gateway's own tick timer with no per-frame
+overhead, works for Ethernet too, and supports pause/resume/seek and repeated replays.
+See <a href="#howto-replay-can">Replay a CAN trace</a>.</div></details>
+
+<details class="faq-item"><summary>Can one trace file contain both CAN and Ethernet?</summary>
+<div class="faq-body">Yes — <code>.pcapng</code> (open, Wireshark-readable, the Recorder's
+default) and BoAt's internal <code>.trace</code> format both carry mixed traffic on one
+timeline. Classic <code>.pcap</code> cannot (one link type per file), and
+<code>.asc</code>/<code>.blf</code> are CAN-only. See
+<a href="#howto-pcapng">Mixed traces with PCAPNG</a>.</div></details>
+
+<details class="faq-item"><summary>Frames don't appear on the bus. What do I check first?</summary>
+<div class="faq-body"><ol>
+<li>Interface up? <code>ip link show vcan0</code> / <code>ip -d link show type can</code></li>
+<li>Gateway sees it? <code>boat frame list-ifaces</code> (also proves the gRPC connection —
+<code>UNAVAILABLE</code> means wrong host/port or gateway not running)</li>
+<li>Watch the kernel directly: <code>candump vcan0</code> / <code>tcpdump -i eth0</code></li>
+<li>For Ethernet replay: was <code>--eth-iface</code> set at playback, and is the
+interface registered via <code>BOAT_ETH_INTERFACES</code> (with <code>raw:</code> +
+setcap for physical NICs)?</li>
+<li>Replay filters (<code>--channel</code>, <code>--id</code>, IP filters) can silently
+drop everything — try without filters.</li></ol></div></details>
+
+<details class="faq-item"><summary>What is a <code>.trace</code> file and where do they live?</summary>
+<div class="faq-body">BoAt's internal binary trace format: a stream of length-prefixed
+serialized <code>boat.v1.Frame</code> protobuf records — what the replay engine executes
+directly. Every <code>boat replay import</code> stores one on the gateway at
+<code>/tmp/&lt;trace_id&gt;.trace</code>, which is why the Trace Editor's file list scans
+<code>/tmp</code>. It's an internal format: to give a trace to someone outside BoAt,
+export it to <code>.pcapng</code> (<code>boat replay export</code> or the Trace Editor
+button).</div></details>
+
+<details class="faq-item"><summary>How do I get an edited trace back into the gateway?</summary>
+<div class="faq-body">Use the Trace Editor's <strong>Push to Gateway</strong> button —
+it uploads the in-memory frames via <code>ImportTraceData</code>. You cannot use
+<code>boat replay import</code> for this: that command only accepts source formats
+(<code>.asc</code>/<code>.blf</code>/<code>.pcap</code>/<code>.pcapng</code>) and always
+re-converts. After pushing: <code>boat replay start --trace &lt;id&gt; --buses vcan0</code>.</div></details>
+
+<details class="faq-item"><summary>CMake says my version is too old.</summary>
+<div class="faq-body">BoAt needs CMake ≥ 3.24; Ubuntu 22.04 ships 3.22. Install a
+<a href="https://github.com/Kitware/CMake/releases">Kitware binary release</a> or add the
+Kitware APT repository.</div></details>
+
+<details class="faq-item"><summary>Why does the build want Rust/cargo?</summary>
+<div class="faq-body">It's a build-time-only transitive dependency of iceoryx2 (the
+shared-memory IPC library used for payloads &gt; 4 KB). Install via <code>rustup</code> —
+distro cargo packages are frequently too old. No Rust code exists in BoAt itself.</div></details>
+
+<details class="faq-item"><summary>When do I need <code>python-can</code>?</summary>
+<div class="faq-body">Only for Vector formats: reading/writing <code>.asc</code> and
+<code>.blf</code> (recording in those formats, importing them, analyzing them). PCAP and
+PCAPNG handling is built into BoAt with no third-party dependency. If it's missing you
+get a clear <code>pip install python-can</code> error exactly where it's needed.</div></details>
+
+<details class="faq-item"><summary>Why does the Launcher need passwordless sudo?</summary>
+<div class="faq-body">Creating network interfaces (<code>modprobe vcan</code>,
+<code>ip link add/set</code>) is a privileged operation. The Launcher shells out to these
+commands when you create vcan/veth interfaces from the browser. Alternatively create the
+interfaces manually once and never grant the UI sudo.</div></details>
+
+<details class="faq-item"><summary>Why must physical Ethernet use <code>raw:</code> and setcap?</summary>
+<div class="faq-body">Injecting arbitrary L2 frames on a real NIC requires a raw
+AF_PACKET socket, which needs <code>CAP_NET_RAW</code>. Grant it once per build:
+<code>sudo setcap cap_net_raw+ep &lt;gateway binary&gt;</code>. Prefer this over running
+as root (root-owned files under <code>/tmp</code> break later non-root runs), and
+remember setcap does not survive rebuilds. Virtual <code>veth</code> pairs need
+neither.</div></details>
+
+<details class="faq-item"><summary>Are <code>boat can</code> and <code>boat eth</code> gone?</summary>
+<div class="faq-body">They still work but are deprecated thin wrappers. Since ABI v8 all
+bus types share one frame model, so <code>boat frame send</code> /
+<code>boat frame subscribe</code> with <code>--bus-type</code>/<code>--bus-types</code>
+is the primary interface.</div></details>
+
+<details class="faq-item"><summary>How deterministic is "deterministic"?</summary>
+<div class="faq-body">Bit-identical: the <code>boat_determinism_seed</code> test runs the
+same seeded scenario twice and asserts byte-for-byte equal output. This holds as long as
+plugins don't introduce unseeded randomness or wall-clock dependence — the same rule the
+core codebase enforces on itself.</div></details>
+
+<details class="faq-item"><summary>Can I open BoAt's trace files in Wireshark?</summary>
+<div class="faq-body"><code>.pcapng</code> and <code>.pcap</code> — yes, directly,
+including CAN (Wireshark decodes SocketCAN link-layer frames, classic and FD). The
+internal <code>.trace</code> format — no; export it first with
+<code>boat replay export in.trace out.pcapng</code>.</div></details>
+
+<details class="faq-item"><summary>The server-side replay client "hangs" after Replaying…</summary>
+<div class="faq-body">The client blocks on the event stream while the gateway plays the
+trace — frames are still hitting the bus (verify with <code>candump</code>/
+<code>tcpdump</code>). Use <code>--verbose</code> for per-event output, or Ctrl+C to
+detach; the replay itself is controlled with <code>boat replay pause/resume/stop</code>.</div></details>
+
+<h2 id="more-docs">Further reading</h2>
+
+<table>
+  <tr><th>Document</th><th>Content</th></tr>
+  <tr><td><span class="kbd-path">AGENTS.md</span></td><td>The detailed build/run/feature reference for the whole platform</td></tr>
+  <tr><td><span class="kbd-path">boat-platform/docs/architecture/system-architecture.md</span></td><td>Architecture in depth (v8: unified frames, plugin dispatch, FrameSink, replay pipeline)</td></tr>
+  <tr><td><span class="kbd-path">boat-platform/cli/howto_cli.md</span></td><td>CLI installation and per-command workflows</td></tr>
+  <tr><td><span class="kbd-path">boat-platform/docs/howto/replay.md</span></td><td>The complete replay reference — every flag, filter, and the exact processing order</td></tr>
+  <tr><td><span class="kbd-path">tools/trace_editor_howto.html</span></td><td>Trace Editor field-by-field manual (also served at <code>:8089/howto</code>)</td></tr>
+  <tr><td><span class="kbd-path">boat-platform/docs/howto/dbc2boatjson.md</span></td><td>DBC → PDU database conversion reference</td></tr>
+  <tr><td><span class="kbd-path">boat-platform/docs/api/api-specification.md</span></td><td>gRPC API surface (16 services)</td></tr>
+  <tr><td><span class="kbd-path">test/Structure.md</span></td><td>System-test structure and conventions</td></tr>
+</table>
+
+<p style="margin-top:40px; color:var(--muted); font-size:12px; border-top:1px solid var(--border); padding-top:14px;">
+⛵ BoAt Guidebook — lives at <span class="kbd-path">guidebook.html</span> in the repository root.
+Found something outdated? The source of truth is always the code and the in-repo docs; please update this page along with them.
+</p>
+
+</main>
+</div>
+
+</body>
+</html>

@@ -1,14 +1,18 @@
 """Python SDK for replaying CAN trace files through the BoAt gateway.
 
-``TraceReplayer.replay()`` supports CAN only (.asc, .blf via python-can) and
-sends each frame one-by-one via gRPC CanService, paced in real time by this
-process. There is no server-side mode here.
+``TraceReplayer.replay()`` supports CAN only (.asc, .blf, and the CAN
+records of a .pcapng via python-can / :mod:`boat.pcapng`) and sends each
+frame one-by-one via gRPC CanService, paced in real time by this process.
+There is no server-side mode here.
 
-For Ethernet (.pcap) replay, use ``convert_to_binary()`` to produce the
-gateway's internal binary trace format, upload it via
-ReplayService.ImportTraceData, then play it back with
+For Ethernet (.pcap, or the Ethernet records of a mixed .pcapng) replay,
+use ``convert_to_binary()`` to produce the gateway's internal binary trace
+format, upload it via ReplayService.ImportTraceData, then play it back with
 ReplayService.StartReplay + StreamReplay (this is what the ``boat replay
 import`` / ``boat replay start`` / ``boat replay stream`` CLI commands do).
+``export_to_pcapng()`` is the inverse: turn an already-imported/edited
+internal-format trace back into a standalone, Wireshark-readable .pcapng
+file for handing off to external tools/teams.
 
 Quick example::
 
@@ -38,6 +42,8 @@ import struct
 import time
 from pathlib import Path
 from typing import Callable, List, Optional
+
+from boat.pcapng import PcapngError, PcapngReader, PcapngWriter, DLT_CAN_SOCKETCAN, DLT_EN10MB
 
 # CAN FD flags (matches gateway constants)
 _CANFD_BRS = 0x01   # bit-rate switch
@@ -234,7 +240,10 @@ class TraceReplayer:
         """Replay a CAN trace file, sending each frame individually via gRPC.
 
         Args:
-            path: Path to a ``.asc`` or ``.blf`` file.
+            path: Path to a ``.asc``, ``.blf``, or ``.pcapng`` file. A
+                  ``.pcapng`` file's Ethernet records (if any -- pcapng can
+                  mix CAN and Ethernet interfaces in one file) are silently
+                  skipped; only its CAN/CAN-FD records are replayed.
             loop: If set, replay the file in a loop with N ms gap between the
                   last message of one run and the first message of the next run.
                   ``None`` or omitted means play once.
@@ -295,16 +304,20 @@ class TraceReplayer:
         so the same import can be replayed on different hardware without
         re-importing.
 
-        Handles both CAN (ASC/BLF) and Ethernet (pcap) sources.
+        Handles CAN (ASC/BLF), Ethernet (pcap), and mixed CAN+Ethernet
+        (pcapng) sources. A pcapng file can yield both CAN and Ethernet
+        records interleaved, so the CAN/Ethernet decision is made per
+        message (via ``hasattr(msg, "ethertype")``) rather than once per
+        file/reader.
         """
         from boat.v1 import frame_pb2
 
         reader = self._open_reader(path)
         result = bytearray()
-        is_eth = isinstance(reader, EthernetPcapReader)
 
         with reader:
             for msg in reader:
+                is_eth = hasattr(msg, "ethertype")
                 if is_eth:
                     if self.ethertype_filter and msg.ethertype not in self.ethertype_filter:
                         continue
@@ -433,6 +446,77 @@ class TraceReplayer:
             frames.append(frame)
             offset += length
         return frames
+
+    @staticmethod
+    def export_to_pcapng(frames: List, output_path: Path) -> dict:
+        """Export ``boat.v1.Frame`` records (e.g. from :meth:`parse_binary`)
+        to a standalone, Wireshark-readable ``.pcapng`` file.
+
+        CAN/CAN-FD frames are grouped onto one PCAPNG interface per
+        distinct ``frame.iface``, falling back to a synthetic
+        ``can{channel}`` name when ``iface`` was never resolved (the usual
+        case right after import -- see :meth:`convert_to_binary`'s
+        docstring on why CAN records carry a channel, not a resolved
+        interface, until replay time). Ethernet frames are grouped by
+        ``frame.iface``, falling back to ``"eth0"``.
+
+        TCP and PDU frames have no real link-layer wire representation
+        (TCP metadata here is a reconstructed connection, not a captured
+        Ethernet+IP+TCP frame; PDU is an internal routing abstraction) and
+        are skipped -- counted and reported, not attempted, mirroring
+        :meth:`_read_trace_binary`'s existing skip-and-report pattern in
+        ``trace_analyzer.py``.
+
+        Returns ``{"can_frames", "eth_frames", "skipped", "path"}``.
+        """
+        from boat.v1 import frame_pb2
+
+        iface_ids: dict[tuple[str, str], int] = {}
+        writer = PcapngWriter(str(output_path))
+        can_count = 0
+        eth_count = 0
+        skipped = 0
+
+        try:
+            for frame in frames:
+                if frame.bus_type in (frame_pb2.Frame.CAN, frame_pb2.Frame.CANFD):
+                    kind = "can"
+                    name = frame.iface or f"can{frame.can.channel or 1}"
+                elif frame.bus_type == frame_pb2.Frame.ETHERNET:
+                    kind = "eth"
+                    name = frame.iface or "eth0"
+                else:
+                    skipped += 1
+                    continue
+
+                key = (kind, name)
+                if key not in iface_ids:
+                    dlt = DLT_CAN_SOCKETCAN if kind == "can" else DLT_EN10MB
+                    iface_ids[key] = writer.add_interface(name, dlt)
+                iface_id = iface_ids[key]
+                ts = frame.timestamp_ns / 1_000_000_000
+
+                if kind == "can":
+                    writer.write_can(
+                        iface_id, ts, frame.can.can_id, frame.can.dlc,
+                        bytes(frame.payload), frame.can.flags,
+                    )
+                    can_count += 1
+                else:
+                    writer.write_eth(
+                        iface_id, ts, bytes(frame.eth.dst_mac), bytes(frame.eth.src_mac),
+                        frame.eth.ethertype, bytes(frame.payload),
+                    )
+                    eth_count += 1
+        finally:
+            writer.close()
+
+        return {
+            "can_frames": can_count,
+            "eth_frames": eth_count,
+            "skipped": skipped,
+            "path": str(output_path),
+        }
 
     def _buffer_tcp_frame(self, frame: EthernetPcapFrame) -> None:
         """Buffer a TCP frame by stream for later stateful replay."""
@@ -829,11 +913,17 @@ class TraceReplayer:
 
         Supports:
           - ``.pcap`` (DLT_EN10MB) → ``EthernetPcapReader``
+          - ``.pcapng`` (mixed CAN + Ethernet interfaces) → ``PcapngReader``
           - ``.asc`` / ``.blf`` → python-can reader
         """
         suffix = path.suffix.lower()
         if suffix == ".pcap":
             return EthernetPcapReader(str(path))
+        if suffix == ".pcapng":
+            try:
+                return PcapngReader(str(path))
+            except PcapngError as e:
+                raise TraceReplayError(f"Invalid pcapng file: {e}") from e
 
         try:
             import can
@@ -848,7 +938,7 @@ class TraceReplayer:
             return can.BLFReader(str(path))
         raise TraceReplayError(
             f"Unsupported trace format '{suffix}'. "
-            "Supported: .pcap, .asc, .blf"
+            "Supported: .pcap, .pcapng, .asc, .blf"
         )
 
     def _replay_once(self, stub, path: Path, initial_offset_sec: float = 0.0) -> tuple[int, float | None]:
@@ -877,6 +967,11 @@ class TraceReplayer:
         with reader:
             for msg in reader:
                 # ── filters ───────────────────────────────────────────────────
+                if hasattr(msg, "ethertype"):
+                    # A .pcapng source may carry Ethernet records alongside
+                    # CAN ones; this is CAN-only per-frame injection, so skip
+                    # them rather than crash on the missing CAN attributes.
+                    continue
                 ch = getattr(msg, "channel", None)
                 if self.channel_filter is not None and ch != self.channel_filter:
                     continue

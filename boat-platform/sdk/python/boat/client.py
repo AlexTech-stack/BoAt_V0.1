@@ -28,6 +28,7 @@ class BoAtClient:
         from boat.v1 import pdu_pb2_grpc
         from boat.v1 import trace_pb2_grpc
         from boat.v1 import frame_pb2_grpc
+        from boat.v1 import device_pb2_grpc
 
         self._bus = bus_pb2_grpc.BusServiceStub(self.channel)
         self._ethernet = ethernet_pb2_grpc.EthernetServiceStub(self.channel)
@@ -43,6 +44,7 @@ class BoAtClient:
         self._pdu = pdu_pb2_grpc.PduServiceStub(self.channel)
         self._debug = debug_pb2_grpc.DebugServiceStub(self.channel)
         self._frame = frame_pb2_grpc.FrameServiceStub(self.channel)
+        self._device = device_pb2_grpc.DeviceServiceStub(self.channel)
         self._stubs_loaded = True
 
     @property
@@ -114,6 +116,11 @@ class BoAtClient:
     def frame(self) -> Any:
         self._load_stubs()
         return self._frame
+
+    @property
+    def device(self) -> Any:
+        self._load_stubs()
+        return self._device
 
     def close(self) -> None:
         self.channel.close()

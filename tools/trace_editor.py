@@ -667,6 +667,31 @@ def api_trace_save(body: dict):
         warnings = _monotonic_warnings(_current_frames) + _dlc_mismatch_warnings(_current_frames)
     return {"status": "ok", "path": str(fp), "count": len(frames), "warnings": warnings}
 
+@app.post("/api/trace/export")
+def api_trace_export(body: dict):
+    """Export the current in-memory frames to a standalone .pcapng file --
+    the inverse of the .asc/.blf/.pcap/.pcapng -> .trace conversion
+    `/api/blf/convert` (in trace_analyzer.py) and `boat replay import` do.
+    Lets an already-imported (and possibly edited-here) trace be handed
+    back to external tools/teams in an open, Wireshark-readable format.
+    """
+    path_str = body.get("path")
+    if not path_str:
+        raise HTTPException(400, "No path given")
+    fp = _resolve_path(path_str)
+    if fp.suffix.lower() != ".pcapng":
+        fp = fp.with_suffix(".pcapng")
+
+    with _frames_lock:
+        try:
+            frames = [_dict_to_frame(d) for d in _current_frames]
+        except ValueError as e:
+            raise HTTPException(400, f"Invalid frame data: {e}")
+
+    fp.parent.mkdir(parents=True, exist_ok=True)
+    stats = TraceReplayer.export_to_pcapng(frames, fp)
+    return {"status": "ok", **stats}
+
 @app.get("/api/frames")
 def api_frames():
     with _frames_lock:
@@ -1101,6 +1126,7 @@ td.payload-cell { max-width:320px; overflow:hidden; text-overflow:ellipsis; }
   <button class="btn-danger" id="delete-selected-btn" onclick="deleteSelected()" disabled>Delete Selected</button>
   <button class="btn-primary" onclick="saveFile()">Save</button>
   <button onclick="saveAs()">Save As</button>
+  <button onclick="exportPcapng()" title="Export the current frames to a standalone, Wireshark-readable .pcapng file">Export to PCAPNG</button>
   <label>Gateway <input id="gateway-addr" placeholder="localhost:50051" style="width:150px" onchange="saveGatewayCookie()"/></label>
   <button class="btn-add" onclick="pushToGateway()">Push to Gateway</button>
   <button onclick="analyzeInTraceAnalyzer()">Analyze in Trace Analyzer</button>
@@ -1745,6 +1771,18 @@ async function saveAs() {
     toast(`Saved ${r.count} frames to ${r.path}`,"success");
     showWarnings(r.warnings);
   } catch(e) { toast("Save failed: " + e.message,"error"); }
+}
+
+async function exportPcapng() {
+  const base = currentPath ? currentPath.split(/[\\/]/).pop().replace(/\.[^.]+$/, "") : "edited";
+  const name = prompt("PCAPNG filename (relative paths are saved under the traces/ dir):", base + ".pcapng");
+  if (!name) return;
+  try {
+    const r = await api("POST","/api/trace/export", {path: name});
+    toast(`Exported ${r.can_frames} CAN + ${r.eth_frames} Ethernet frame(s) to ${r.path}` +
+          (r.skipped ? ` (${r.skipped} TCP/PDU frame(s) skipped -- no wire representation)` : ""),
+          "success");
+  } catch(e) { toast("Export failed: " + e.message,"error"); }
 }
 
 // Gateway address is remembered across sessions/reloads via a cookie, since

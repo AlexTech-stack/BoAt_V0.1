@@ -56,6 +56,10 @@ class PluginManager {
   /* v8: Deliver a unified BoatFrame to every plugin with on_frame. */
   void DispatchFrame(const BoatFrame& frame);
 
+  /* v9: Deliver an always-on signal-bus value to every plugin with on_signal.
+     Plugins filter by name; device plugins consume setpoints/commands here. */
+  void DispatchSignal(const char* name, double value);
+
   void ShutdownAll();
   [[nodiscard]] std::vector<std::string> List() const;
 

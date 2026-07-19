@@ -25,6 +25,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from boat.client import BoAtClient
 from boat.v1 import bus_pb2, can_pb2, ethernet_pb2
+from boat.pcapng import PcapngWriter, DLT_CAN_SOCKETCAN, DLT_EN10MB, pack_can_frame, pack_eth_frame
 try:
     import can as python_can
     _HAS_PYTHON_CAN = True
@@ -38,8 +39,8 @@ _DEFAULT_OUT_DIR.mkdir(parents=True, exist_ok=True)
 # ── PCAP constants ─────────────────────────────────────────────────────────────
 _PCAP_MAGIC   = 0xA1B2C3D4
 _PCAP_SNAPLEN = 65535
-_DLT_CAN_SK   = 227   # DLT_CAN_SOCKETCAN — Wireshark decodes classic + FD by length
-_DLT_ETH      = 1     # DLT_EN10MB
+_DLT_CAN_SK   = DLT_CAN_SOCKETCAN   # 227 — Wireshark decodes classic + FD by length
+_DLT_ETH      = DLT_EN10MB          # 1
 _CAN_EFF_FLAG = 0x80000000
 # ── File writers ───────────────────────────────────────────────────────────────
 class _PcapBase:
@@ -66,24 +67,13 @@ class PcapCanWriter(_PcapBase):
     def write(self, ts: float, can_id: int, dlc: int, data: bytes, flags: int) -> None:
         # DLT_CAN_SOCKETCAN requires can_id in network byte order (big-endian).
         # Using little-endian causes Wireshark to display wrong IDs (e.g. 0x103 → 0x000).
-        is_fd = bool(flags & 0x04)
-        if is_fd:
-            # canfd_frame: 4 id (BE) + 1 len + 1 flags + 2 pad + 64 data = 72 B
-            raw = struct.pack(">IBBBB", can_id, dlc, flags, 0, 0) + \
-                  (data[:dlc] + b"\x00" * 64)[:64]
-        else:
-            # can_frame: 4 id (BE) + 1 dlc + 3 pad + 8 data = 16 B
-            raw = struct.pack(">IBBBB", can_id, dlc, 0, 0, 0) + \
-                  (data[:dlc] + b"\x00" * 8)[:8]
-        self._packet(ts, raw)
+        self._packet(ts, pack_can_frame(can_id, dlc, data, flags))
 class PcapEthWriter(_PcapBase):
     def __init__(self, path: Path) -> None:
         super().__init__(path, _DLT_ETH)
     def write(self, ts: float, dst_mac: bytes, src_mac: bytes,
               ethertype: int, payload: bytes) -> None:
-        dst = dst_mac if len(dst_mac) == 6 else b"\xff" * 6
-        src = src_mac if len(src_mac) == 6 else b"\x00" * 6
-        self._packet(ts, dst + src + struct.pack(">H", ethertype) + payload)
+        self._packet(ts, pack_eth_frame(dst_mac, src_mac, ethertype, payload))
 class JsonlWriter:
     def __init__(self, path: Path) -> None:
         self._f    = open(path, "w", encoding="utf-8", buffering=1)
@@ -102,9 +92,9 @@ class JsonlWriter:
 class Session:
     session_id:      str
     name:            str
-    fmt:             str          # "asc" | "blf" | "pcap"
+    fmt:             str          # "asc" | "blf" | "pcap" | "pcapng"
     buses:           List[str]    # CAN interface names to record
-    eth_ifaces:      List[str]    # Ethernet interface names (pcap only)
+    eth_ifaces:      List[str]    # Ethernet interface names (pcap/pcapng only)
     include_signals: bool
     gateway:         str
     output_dir:      Path
@@ -124,6 +114,7 @@ class Session:
     _bus_stream:  Any               = field(default=None,                     repr=False)
     _files:       List[Path]        = field(default_factory=list,             repr=False)
     _channel_map: Dict[str, int]    = field(default_factory=dict,             repr=False)
+    _pcapng_ifaces: Dict[str, int]  = field(default_factory=dict,             repr=False)
     @property
     def running(self) -> bool:
         return self.stopped_at is None
@@ -177,6 +168,24 @@ def _open_writers(session: Session) -> None:
             p = Path(str(base) + "_eth.pcap")
             session._eth_writer = PcapEthWriter(p)
             session._files.append(p)
+    elif session.fmt == "pcapng":
+        if session.buses or session.eth_ifaces:
+            p = Path(str(base) + ".pcapng")
+            writer = PcapngWriter(p)
+            session._files.append(p)
+            for iface in session.buses:
+                session._pcapng_ifaces[iface] = writer.add_interface(iface, DLT_CAN_SOCKETCAN)
+            for iface in session.eth_ifaces:
+                session._pcapng_ifaces[iface] = writer.add_interface(iface, DLT_EN10MB)
+            # One shared file/writer for both bus types (pcapng interleaves
+            # CAN + Ethernet into one set of interfaces) -- gated the same
+            # way as the "pcap" branch above so a CAN-only or Eth-only
+            # session doesn't spin up a subscriber thread for a bus it
+            # never asked to record.
+            if session.buses:
+                session._can_writer = writer
+            if session.eth_ifaces:
+                session._eth_writer = writer
     if session.include_signals:
         p = Path(str(base) + "_bus.jsonl")
         session._sig_writer = JsonlWriter(p)
@@ -202,6 +211,11 @@ def _write_can(session: Session, frame: Any, ts: float) -> None:
             bitrate_switch   = is_brs,
         )
         w(msg)
+    elif session.fmt == "pcapng":
+        iface_id = session._pcapng_ifaces.get(frame.iface)
+        if iface_id is None:
+            return
+        w.write_can(iface_id, ts, frame.can_id, frame.dlc, bytes(frame.data[:frame.dlc]), frame.flags)
     else:
         w.write(ts, frame.can_id, frame.dlc, bytes(frame.data[:frame.dlc]), frame.flags)
 def _run_can_sub(session: Session) -> None:
@@ -244,7 +258,13 @@ def _run_eth_sub(session: Session) -> None:
             if w is None:
                 continue
             ts = frame.timestamp_ns / 1e9 if frame.timestamp_ns else time.time()
-            w.write(ts, frame.dst_mac, frame.src_mac, frame.ethertype, frame.payload)
+            if session.fmt == "pcapng":
+                iface_id = session._pcapng_ifaces.get(frame.iface)
+                if iface_id is None:
+                    continue
+                w.write_eth(iface_id, ts, frame.dst_mac, frame.src_mac, frame.ethertype, frame.payload)
+            else:
+                w.write(ts, frame.dst_mac, frame.src_mac, frame.ethertype, frame.payload)
             session.eth_count += 1
     except Exception:
         pass
@@ -313,7 +333,7 @@ def start_session(req_data: dict) -> Session:
         t = threading.Thread(target=_run_can_sub, args=(session,), daemon=True)
         session._threads.append(t)
         t.start()
-    if session.eth_ifaces and session.fmt == "pcap":
+    if session.eth_ifaces and session.fmt in ("pcap", "pcapng"):
         t = threading.Thread(target=_run_eth_sub, args=(session,), daemon=True)
         session._threads.append(t)
         t.start()
@@ -344,7 +364,7 @@ _sessions_lock = threading.Lock()
 class StartRequest(BaseModel):
     gateway:         str       = _DEFAULT_GW
     name:            str       = ""
-    format:          str       = "asc"        # "asc" | "blf" | "pcap"
+    format:          str       = "asc"        # "asc" | "blf" | "pcap" | "pcapng"
     buses:           List[str] = []
     eth_ifaces:      List[str] = []
     include_signals: bool      = True
@@ -363,8 +383,8 @@ def api_session(session_id: str):
 @app.post("/api/sessions")
 def api_start(req: StartRequest):
     fmt = req.format.lower()
-    if fmt not in ("asc", "blf", "pcap"):
-        raise HTTPException(400, f"Unknown format: {fmt!r} (use asc, blf, or pcap)")
+    if fmt not in ("asc", "blf", "pcap", "pcapng"):
+        raise HTTPException(400, f"Unknown format: {fmt!r} (use asc, blf, pcap, or pcapng)")
     if fmt in ("asc", "blf") and not _HAS_PYTHON_CAN:
         raise HTTPException(500, "python-can is not installed; cannot write ASC or BLF")
     try:
@@ -535,9 +555,10 @@ HTML = r"""<!DOCTYPE html>
   .td-id { color: var(--blue); max-width: 160px; }
   .fmt-badge { display: inline-block; padding: 1px 7px; border-radius: 10px;
     font-size: 10px; font-weight: 600; text-transform: uppercase; }
-  .fmt-asc  { background: #1c3a1c; color: var(--green); }
-  .fmt-blf  { background: #1c1c3a; color: var(--blue); }
-  .fmt-pcap { background: #2d1c3a; color: var(--purple); }
+  .fmt-asc    { background: #1c3a1c; color: var(--green); }
+  .fmt-blf    { background: #1c1c3a; color: var(--blue); }
+  .fmt-pcap   { background: #2d1c3a; color: var(--purple); }
+  .fmt-pcapng { background: #1c3333; color: #4dd0c8; }
   .btn-expand { background: none; border: none; color: var(--blue); cursor: pointer;
     font-size: 11px; padding: 0; font-family: var(--mono); }
   .files-panel { display: none; background: #0a0d12; border-top: 1px solid var(--border);
@@ -609,9 +630,10 @@ HTML = r"""<!DOCTYPE html>
         <div class="field-row">
           <label class="fl">Format</label>
           <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="fmt" value="asc" checked/><span>ASC</span></label>
+            <label class="radio-label"><input type="radio" name="fmt" value="pcapng" checked/><span>PCAPNG</span></label>
+            <label class="radio-label"><input type="radio" name="fmt" value="asc"/><span>ASC</span></label>
             <label class="radio-label"><input type="radio" name="fmt" value="blf"/><span>BLF</span></label>
-            <label class="radio-label"><input type="radio" name="fmt" value="pcap"/><span>PCAP</span></label>
+            <label class="radio-label"><input type="radio" name="fmt" value="pcap" title="Legacy — classic pcap (Ethernet-only, two separate files). Prefer PCAPNG."/><span>PCAP <span style="opacity:.6;font-size:9px">(legacy)</span></span></label>
           </div>
         </div>
         <div class="field-row" style="align-items:flex-start;margin-top:2px">
@@ -734,11 +756,11 @@ function renderCheckGroup(containerId, ifaces, prefix, defaultChecked) {
 }
 function updateEthState() {
   const fmt = document.querySelector('input[name="fmt"]:checked')?.value;
-  const isPcap = fmt === 'pcap';
+  const ethCapable = fmt === 'pcap' || fmt === 'pcapng';
   document.querySelectorAll('#eth-checks input[type="checkbox"]').forEach(cb => {
-    cb.disabled = !isPcap;
+    cb.disabled = !ethCapable;
   });
-  document.getElementById('eth-row').style.opacity = isPcap ? '1' : '0.45';
+  document.getElementById('eth-row').style.opacity = ethCapable ? '1' : '0.45';
 }
 // ── Start ─────────────────────────────────────────────────────────────────────
 async function startRecording() {

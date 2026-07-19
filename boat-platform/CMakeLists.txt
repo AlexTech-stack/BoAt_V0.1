@@ -87,6 +87,9 @@ FetchContent_Declare(
   GIT_TAG v3.4.0
 )
 
+# Enable PIC for shared-library plugin support (backbone plugin).
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "Build dependencies with PIC" FORCE)
+
 # protobuf must be available before gRPC so that gRPC's find_package(protobuf)
 # is redirected to our FetchContent copy via OVERRIDE_FIND_PACKAGE.
 FetchContent_MakeAvailable(spdlog protobuf tomlplusplus)

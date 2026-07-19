@@ -34,6 +34,14 @@
     "plugins": {
       "type": "array",
       "items": { "$ref": "#/$defs/PluginRef" }
+    },
+    "devices": {
+      "type": "object",
+      "description": "Electrical devices (power supplies, relays, generators, generic I/O) exposed as signal-bus device plugins. 'virtual' devices are deterministic models; the others drive live bench hardware (HIL only) and are excluded from the determinism seed test and from being a replay target.",
+      "additionalProperties": { "$ref": "#/$defs/DeviceConfig" },
+      "propertyNames": {
+        "description": "Device id, e.g. psu.main, relay.kl15, gen.alt"
+      }
     }
   },
   "$defs": {
@@ -68,6 +76,27 @@
       "properties": {
         "so_path":     { "type": "string" },
         "config_json": { "type": "string", "default": "{}" }
+      }
+    },
+    "DeviceConfig": {
+      "type": "object",
+      "required": ["type", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["virtual", "scpi", "gpio", "modbus"],
+          "description": "Backend: 'virtual' = deterministic model (virtual_psu / virtual_relay); 'scpi' = SCPI instrument over TCP (scpi_device); 'gpio'/'modbus' = future IDeviceDriver backends. Mirrors the vcan/physical split for buses."
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["power_supply", "relay", "generator", "generic_io"]
+        },
+        "host":     { "type": "string", "description": "Instrument host (type=scpi)" },
+        "port":     { "type": "integer", "minimum": 1, "maximum": 65535, "default": 5025 },
+        "resource": { "type": "string", "description": "Backend resource string (VISA / serial / modbus unit)" },
+        "poll_ms":  { "type": "integer", "minimum": 1, "description": "Measurement poll interval for live backends" },
+        "config_json": { "type": "string", "default": "{}", "description": "Extra plugin config JSON" }
       }
     }
   }

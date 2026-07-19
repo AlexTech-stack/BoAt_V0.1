@@ -35,6 +35,7 @@ BOAT_CAN_INTERFACES=vcan0 ./build/debug/src/gateway/grpc_gateway/boat_gateway
 
 ## Learn more
 
+- **[📘 The BoAt Guidebook](guidebook.html)** — start here: what BoAt is, setup, every UI and tool, a large how-to collection, and FAQs (open the file in a browser)
 - [Project overview](boat-platform/docs/project.html)
 - [Architecture](boat-platform/docs/architecture/system-architecture.md)
 - [API specification](boat-platform/docs/api/api-specification.md)

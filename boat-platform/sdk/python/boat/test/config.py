@@ -97,6 +97,85 @@ class PluginRef:
 
 
 @dataclass
+class DeviceConfig:
+    """An electrical device declared in an environment config's `devices:` block.
+
+    Translates to a BoAt device plugin loaded via BOAT_NODE_PLUGINS. `virtual`
+    devices use the deterministic model plugins; `scpi`/`gpio`/`modbus` use the
+    live-hardware backends. The device_id (the dict key, e.g. "psu.main") sets
+    the signal prefix; the plugin `id` is the part after the kind (e.g. "main").
+    """
+
+    device_id: str
+    type: str   # virtual | scpi | gpio | modbus
+    kind: str   # power_supply | relay | generator | generic_io
+    host: Optional[str] = None
+    port: Optional[int] = None
+    resource: Optional[str] = None
+    poll_ms: Optional[int] = None
+    config_json: str = "{}"
+
+    @classmethod
+    def from_dict(cls, device_id: str, d: dict) -> DeviceConfig:
+        return cls(
+            device_id=device_id,
+            type=d["type"],
+            kind=d["kind"],
+            host=d.get("host"),
+            port=d.get("port"),
+            resource=d.get("resource"),
+            poll_ms=d.get("poll_ms"),
+            config_json=d.get("config_json", "{}"),
+        )
+
+    def to_dict(self) -> dict:
+        d: dict[str, Any] = {"type": self.type, "kind": self.kind}
+        for k in ("host", "port", "resource", "poll_ms"):
+            v = getattr(self, k)
+            if v is not None:
+                d[k] = v
+        if self.config_json and self.config_json != "{}":
+            d["config_json"] = self.config_json
+        return d
+
+    def plugin_id(self) -> str:
+        return self.device_id.split(".", 1)[1] if "." in self.device_id else self.device_id
+
+    def plugin_name(self) -> Optional[str]:
+        if self.type == "virtual":
+            return {
+                "power_supply": "virtual_psu",
+                "relay": "virtual_relay",
+                "generator": "virtual_generator",
+            }.get(self.kind)
+        if self.type == "scpi":
+            return "scpi_device"
+        if self.type == "gpio":
+            return "gpio_relay"
+        if self.type == "modbus":
+            return "modbus_device"
+        return None
+
+    def plugin_spec(self, plugin_dir: str) -> str:
+        """Return the BOAT_NODE_PLUGINS entry (`path.so?{json}`) for this device."""
+        name = self.plugin_name()
+        if name is None:
+            raise ValueError(f"no plugin for device type={self.type} kind={self.kind}")
+        cfg: dict[str, Any] = {"id": self.plugin_id()}
+        for k in ("host", "port", "resource", "poll_ms"):
+            v = getattr(self, k)
+            if v is not None:
+                cfg[k] = v
+        if self.config_json and self.config_json != "{}":
+            try:
+                cfg.update(json.loads(self.config_json))
+            except (ValueError, TypeError):
+                pass
+        blob = json.dumps(cfg, separators=(",", ":"))
+        return f"{plugin_dir}/{name}/{name}.so?{blob}"
+
+
+@dataclass
 class GatewayConfig:
     binary: Optional[str] = None
     tick_ms: int = 10
@@ -140,6 +219,7 @@ class EnvironmentConfig:
     buses: dict[str, BusConfig]
     dut: Optional[DutConfig] = None
     plugins: list[PluginRef] = field(default_factory=list)
+    devices: dict[str, DeviceConfig] = field(default_factory=dict)
 
     @classmethod
     def from_file(cls, path: str) -> EnvironmentConfig:
@@ -155,6 +235,10 @@ class EnvironmentConfig:
 
         plugins_list = [PluginRef.from_dict(p) for p in d.get("plugins", [])]
 
+        devices = {}
+        for dev_id, dev_dict in d.get("devices", {}).items():
+            devices[dev_id] = DeviceConfig.from_dict(dev_id, dev_dict)
+
         return cls(
             schema_version=d["schema_version"],
             name=d["name"],
@@ -163,6 +247,7 @@ class EnvironmentConfig:
             buses=buses,
             dut=DutConfig.from_dict(d["dut"]) if d.get("dut") else None,
             plugins=plugins_list,
+            devices=devices,
         )
 
     def to_dict(self) -> dict:
@@ -178,7 +263,30 @@ class EnvironmentConfig:
             d["dut"] = self.dut.to_dict()
         if self.plugins:
             d["plugins"] = [p.to_dict() for p in self.plugins]
+        if self.devices:
+            d["devices"] = {k: v.to_dict() for k, v in self.devices.items()}
         return d
+
+    def plugin_dir(self) -> str:
+        """Best-effort path to the built plugins, derived from the gateway binary."""
+        b = self.gateway.binary or ""
+        marker = os.path.join("src", "gateway")
+        idx = b.find(marker)
+        if idx > 0:
+            return os.path.join(b[:idx], "src", "plugins")
+        return os.path.join("build", "debug", "src", "plugins")
+
+    def node_plugin_specs(self) -> list[str]:
+        """BOAT_NODE_PLUGINS entries for the declared devices (empty if none).
+
+        The device_manager is prepended so DeviceService/`boat device` work.
+        """
+        if not self.devices:
+            return []
+        pdir = self.plugin_dir()
+        specs = [f"{pdir}/device_manager/device_manager.so"]
+        specs += [dev.plugin_spec(pdir) for dev in self.devices.values()]
+        return specs
 
     def snapshot(self) -> dict:
         """Return a frozen dict for embedding in test reports."""

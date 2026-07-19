@@ -120,3 +120,55 @@ class TestManifestConfig:
         restored = ManifestConfig.from_dict(m.to_dict())
         assert restored.name == "round"
         assert restored.tests[0].id == "T1"
+
+
+class TestDeviceConfig:
+    def _env(self, devices: dict) -> dict:
+        return {
+            "schema_version": "1.0",
+            "name": "dev-env",
+            "gateway": {
+                "address": "localhost:50051",
+                "binary": "./build/debug/src/gateway/grpc_gateway/boat_gateway",
+            },
+            "buses": {"can1": {"type": "virtual", "interface": "vcan0"}},
+            "devices": devices,
+        }
+
+    def test_parse_devices(self) -> None:
+        cfg = EnvironmentConfig.from_dict(self._env({
+            "psu.main": {"type": "virtual", "kind": "power_supply"},
+            "relay.kl15": {"type": "virtual", "kind": "relay"},
+            "gen.alt": {"type": "virtual", "kind": "generator"},
+            "psu.bench": {"type": "scpi", "kind": "power_supply",
+                          "host": "192.168.0.5", "port": 5025},
+        }))
+        assert set(cfg.devices) == {"psu.main", "relay.kl15", "gen.alt", "psu.bench"}
+        assert cfg.devices["psu.main"].kind == "power_supply"
+        assert cfg.devices["psu.bench"].host == "192.168.0.5"
+        # round-trips through to_dict/from_dict
+        assert EnvironmentConfig.from_dict(cfg.to_dict()).devices["gen.alt"].kind == "generator"
+
+    def test_plugin_specs(self) -> None:
+        cfg = EnvironmentConfig.from_dict(self._env({
+            "psu.main": {"type": "virtual", "kind": "power_supply"},
+            "relay.kl15": {"type": "virtual", "kind": "relay"},
+            "gen.alt": {"type": "virtual", "kind": "generator"},
+            "psu.bench": {"type": "scpi", "kind": "power_supply",
+                          "host": "10.0.0.9", "port": 5025},
+        }))
+        specs = cfg.node_plugin_specs()
+        # device_manager is prepended so DeviceService works
+        assert any("device_manager/device_manager.so" in s for s in specs)
+        joined = "\n".join(specs)
+        assert 'virtual_psu/virtual_psu.so?{"id":"main"}' in joined
+        assert 'virtual_relay/virtual_relay.so?{"id":"kl15"}' in joined
+        assert 'virtual_generator/virtual_generator.so?{"id":"alt"}' in joined
+        assert 'scpi_device/scpi_device.so?{"id":"bench"' in joined
+        assert '"host":"10.0.0.9"' in joined and '"port":5025' in joined
+        # plugin dir is derived from the gateway binary path
+        assert all("build/debug/src/plugins" in s for s in specs)
+
+    def test_no_devices_no_plugins(self) -> None:
+        cfg = EnvironmentConfig.from_dict(self._env({}))
+        assert cfg.node_plugin_specs() == []

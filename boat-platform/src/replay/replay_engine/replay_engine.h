@@ -74,10 +74,19 @@ class ReplayController {
 
   using EventForwarder = std::function<void(const boat::core::Frame& frame)>;
   void SetEventForwarder(EventForwarder forwarder);
+
+  /// Signal-domain replay sink. StartFromEvents replays each recorded event as
+  /// a named signal value through this forwarder (wired to the always-on signal
+  /// bus) instead of synthesizing CAN frames.
+  using SignalForwarder = std::function<void(const std::string& name, double value)>;
+  void SetSignalForwarder(SignalForwarder forwarder);
+
   const ReplayConfig& GetActiveConfig() const;
 
  private:
   void ReplayLoop();
+  /// Replays event-store records as named signals (see StartFromEvents).
+  void ReplaySignalLoop(std::vector<boat::store::EventRecord> events);
   bool SeekToTick(std::uint64_t tick, std::size_t& offset, std::uint64_t& landed_tick) const;
   void ParseTickDurationFromEnv();
 
@@ -86,6 +95,7 @@ class ReplayController {
   boat::core::EventBus& event_bus_;
 
   EventForwarder event_forwarder_;
+  SignalForwarder signal_forwarder_;
   std::mutex forwarder_mutex_;
 
   std::atomic<std::uint64_t> current_tick_{0};

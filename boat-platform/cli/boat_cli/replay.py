@@ -223,7 +223,7 @@ def start_replay_from_events(
 @replay_app.command("import")
 def cmd_import(
     ctx: typer.Context,
-    file: Path = typer.Argument(..., help="Path to .asc, .blf, or .pcap trace file"),
+    file: Path = typer.Argument(..., help="Path to .asc, .blf, .pcap, or .pcapng trace file"),
     trace_id: str = typer.Option("", "--trace-id",
                                  help="Trace ID (default: filename stem)"),
     channel: Optional[int] = typer.Option(None, "--channel", "-c",
@@ -380,5 +380,55 @@ def cmd_import(
     print_table(
         ["accepted", "trace_id", "frames", "size"],
         [[True, tid, n_frames, f"{size_kb:.1f} KB"]],
+        ctx.obj["json_mode"],
+    )
+
+
+@replay_app.command("export")
+def cmd_export(
+    ctx: typer.Context,
+    file: Path = typer.Argument(..., help="Path to a .trace file (the internal binary "
+                                           "format produced by `boat replay import`)"),
+    output: Path = typer.Argument(..., help="Output .pcapng path"),
+) -> None:
+    """Export an internal-format .trace file to a standalone .pcapng file.
+
+    Turns an already-imported (and possibly Trace-Editor-edited) trace back
+    into an open, Wireshark-readable format for handing off to external
+    tools/teams. CAN/CAN-FD and Ethernet frames are written to their own
+    PCAPNG interfaces (one file, multiple interfaces, one timeline); TCP
+    and PDU frames have no real link-layer wire representation and are
+    skipped (reported in the ``skipped`` count, not attempted).
+    """
+    file = file.resolve()
+    if not file.exists():
+        print_error(f"File not found: {file}")
+        raise typer.Exit(1)
+    if file.suffix.lower() != ".trace":
+        print_error(
+            f"Expected a .trace file (the internal binary format from `boat replay "
+            f"import`), got '{file.suffix}'"
+        )
+        raise typer.Exit(1)
+
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "sdk" / "python"))
+        from boat.trace_replay import TraceReplayer, TraceReplayError
+    except ImportError as e:
+        print_error(f"Cannot import boat SDK: {e}")
+        raise typer.Exit(1)
+
+    output = output.resolve()
+    try:
+        frames = TraceReplayer.parse_binary(file.read_bytes())
+        stats = TraceReplayer.export_to_pcapng(frames, output)
+    except TraceReplayError as e:
+        print_error(str(e))
+        raise typer.Exit(1)
+
+    print_table(
+        ["path", "can_frames", "eth_frames", "skipped"],
+        [[stats["path"], stats["can_frames"], stats["eth_frames"], stats["skipped"]]],
         ctx.obj["json_mode"],
     )

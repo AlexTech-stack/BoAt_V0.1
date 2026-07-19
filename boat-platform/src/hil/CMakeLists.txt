@@ -13,6 +13,10 @@ add_library(boat_hil STATIC
   pdu/transmission_engine.cpp
   pdu/com/com_signal.cpp
   pdu/tick_timer.cpp
+  device/tcp_line_transport.cpp
+  device/scpi_device_driver.cpp
+  device/modbus_tcp_driver.cpp
+  device/gpio_relay_driver.cpp
 )
 target_include_directories(boat_hil PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_features(boat_hil PUBLIC cxx_std_20)

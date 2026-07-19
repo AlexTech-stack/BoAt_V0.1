@@ -1,0 +1,3 @@
+add_boat_plugin(device_manager device_manager_plugin.cpp)
+target_include_directories(device_manager PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(device_manager PRIVATE boat_plugin_sdk)

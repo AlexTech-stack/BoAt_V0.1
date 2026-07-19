@@ -15,6 +15,7 @@ add_executable(
   trace_service_impl.cpp
   fault_service_impl.cpp
   frame_service_impl.cpp
+  device_service_impl.cpp
   frame_sink.cpp
 )
 target_include_directories(boat_gateway PRIVATE

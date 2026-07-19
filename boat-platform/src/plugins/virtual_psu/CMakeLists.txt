@@ -1,0 +1,2 @@
+add_boat_plugin(virtual_psu virtual_psu_plugin.cpp)
+target_link_libraries(virtual_psu PRIVATE boat_plugin_sdk)

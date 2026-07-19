@@ -1,5 +1,6 @@
 add_library(boat_replay STATIC
   replay_engine/replay_engine.cpp
+  bus_signal_recorder.cpp
 )
 
 target_include_directories(boat_replay PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

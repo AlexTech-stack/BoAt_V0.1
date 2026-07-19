@@ -25,6 +25,7 @@ import sys
 from pathlib import Path
 from typing import Dict
 
+from boat.bus_node import BusNode
 from boat.pdu_db import PduDatabase
 from boat.pdu_node import PduNode
 from boat.message import Message
@@ -139,6 +140,39 @@ class RestbusSimulator:
             self._pdu.remove_route(pdu_id=msg["DbId"])
 
 
+class _Kl15Gate(BusNode):
+    """Gate cyclic transmission on an ignition relay's contact state.
+
+    Subscribes to ``relay.<id>.state`` (published by virtual_relay). When the
+    contact closes (ignition on) the restbus routes are configured + seeded;
+    when it opens (ignition off) they are removed and the bus goes quiet — just
+    like terminal 15 gating a real vehicle's cyclic traffic.
+    """
+
+    def __init__(self, sim: "RestbusSimulator", relay_id: str, address: str) -> None:
+        super().__init__(address=address, node_id="restbus.kl15gate")
+        self._sim = sim
+        self._state_sig = f"relay.{relay_id}.state"
+        self._running = False
+
+    @property
+    def names(self) -> list[str]:
+        return [self._state_sig]
+
+    def on_signal(self, signal) -> None:  # noqa: ANN001
+        if signal.name != self._state_sig:
+            return
+        closed = signal.number_value != 0.0
+        if closed and not self._running:
+            count = self._sim.start()
+            self._running = True
+            print(f"\n[KL15] ignition ON — {count} route(s) transmitting")
+        elif not closed and self._running:
+            self._sim.stop()
+            self._running = False
+            print("\n[KL15] ignition OFF — restbus quiet")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Restbus simulator for the BoAt platform."
@@ -159,6 +193,13 @@ def main() -> None:
         "--gateway",
         default="localhost:50051",
         help="Gateway gRPC address (default: localhost:50051)",
+    )
+    parser.add_argument(
+        "--kl15-relay",
+        metavar="ID",
+        default=None,
+        help="Gate transmission on relay.<ID>.state (e.g. --kl15-relay kl15). "
+             "Requires a virtual_relay for that ID. Ignition off = restbus quiet.",
     )
 
     args = parser.parse_args()
@@ -193,6 +234,20 @@ def main() -> None:
           f"{'Cycle':6s}  {'Type':6s}  Status")
     print(f"  {'-'*10}  {'-'*9}  {'-'*27}  {'-'*27}  "
           f"{'-'*6}  {'-'*6}  ------")
+
+    # KL15-gated mode: wait for an ignition relay to turn transmission on/off.
+    if args.kl15_relay:
+        gate = _Kl15Gate(sim, args.kl15_relay, args.gateway)
+        print(f"\n  KL15 gate: relay.{args.kl15_relay}.state controls transmission")
+        print("  Waiting for ignition…  (Ctrl-C to stop)")
+        try:
+            gate.run(names=gate.names)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            gate.stop()
+            sim.stop()  # ensure routes are removed on exit
+        return
 
     count = sim.start()
 

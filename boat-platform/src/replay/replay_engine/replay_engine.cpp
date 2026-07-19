@@ -22,6 +22,18 @@ std::uint64_t FrameTimestampToMs(std::uint64_t timestamp_ns) {
   return timestamp_ns / 1'000'000ULL;
 }
 
+// Decode a numeric event value_blob (a raw little-endian double, as written by
+// the metrics/signal path) back to a double. Matches DecodeNumeric in
+// metrics_service_impl.cpp — the codebase's convention for numeric event blobs.
+double DecodeNumericBlob(const std::vector<std::uint8_t>& blob) {
+  if (blob.size() >= sizeof(double)) {
+    double value = 0.0;
+    std::memcpy(&value, blob.data(), sizeof(double));
+    return value;
+  }
+  return 0.0;
+}
+
 // Resolve a 1-based trace channel to a target CAN interface using the
 // replay's --buses mapping (ch1->buses[0], ch2->buses[1], ...); falls back
 // to the last bus if there are more channels than buses, and to "vcan0" if
@@ -155,52 +167,114 @@ void ReplayController::Start(const ReplayConfig& config) {
 
 void ReplayController::StartFromEvents(const boat::store::EventFilter& filter,
                                         const ReplayConfig& replay_cfg) {
-  // Event store replay now directly replays events without building a
-  // physical trace file.  The data is already in memory.
-  // For simplicity we create an in-memory protobuf trace here.
-  const auto events = event_store_.Query(filter);
+  // Event-store replay is signal-domain, not frame-domain: each recorded event
+  // is replayed as its original named signal on the always-on signal bus (via
+  // signal_forwarder_), preserving name, value and tick ordering. This replaces
+  // the old approach of synthesizing throwaway CAN frames — a recorded voltage
+  // curve now replays as psu.<id>.voltage.meas, not as fake wire traffic.
+  auto events = event_store_.Query(filter);
   if (events.empty()) {
     return;
   }
+  // Query is not guaranteed tick-ordered across all backends; sort defensively
+  // so replay timing and ordering are deterministic.
+  std::sort(events.begin(), events.end(),
+            [](const boat::store::EventRecord& a, const boat::store::EventRecord& b) {
+              return a.tick < b.tick;
+            });
 
-  std::string trace_id = "evtstore_replay_" +
-                         filter.simulation_id.value_or("default") + "_" +
-                         std::to_string(events[0].tick);
-  std::string storage_path = "/tmp/" + trace_id + ".trace";
+  Stop();  // tear down any in-flight replay before starting a new one
 
-  // Build a minimal protobuf-frame trace (CAN-only, with raw payload).
-  std::vector<std::uint8_t> trace_data;
-  for (const auto& event : events) {
-    boat::v1::Frame proto;
-    proto.set_bus_type(boat::v1::Frame::CAN);
-    proto.set_timestamp_ns(event.wall_time_ns);
-    proto.set_payload(event.value_blob.data(), event.value_blob.size());
-    proto.mutable_can()->set_can_id(static_cast<std::uint32_t>(event.tick));
-    proto.mutable_can()->set_dlc(static_cast<std::uint32_t>(event.value_blob.size()));
-    proto.mutable_can()->set_flags(0);
-
-    std::string raw = proto.SerializeAsString();
-    std::uint32_t len = static_cast<std::uint32_t>(raw.size());
-    trace_data.insert(trace_data.end(),
-                       reinterpret_cast<const std::uint8_t*>(&len),
-                       reinterpret_cast<const std::uint8_t*>(&len) + sizeof(len));
-    trace_data.insert(trace_data.end(), raw.begin(), raw.end());
+  active_config_ = replay_cfg;
+  active_config_.trace_id.clear();  // no trace file backs a signal replay
+  active_config_.start_tick = events.front().tick;
+  {
+    std::lock_guard<std::mutex> lock(error_mutex_);
+    last_error_.clear();
   }
+  ParseTickDurationFromEnv();
+  tick_timer_ = boat::hil::TickTimer::Create(tick_duration_);
+  paused_.store(false);
+  running_.store(true);
 
-  boat::store::TraceRecord meta;
-  meta.id = trace_id;
-  meta.simulation_id = filter.simulation_id.value_or("");
-  meta.start_tick = events.front().tick;
-  meta.end_tick = events.back().tick;
-  meta.format = boat::store::TraceRecord::Format::BINARY;
-  meta.storage_path = storage_path;
+  replay_thread_ = std::thread(&ReplayController::ReplaySignalLoop, this,
+                               std::move(events));
+}
 
-  trace_store_.WriteTrace(meta, std::span<const std::uint8_t>(trace_data));
+void ReplayController::ReplaySignalLoop(
+    std::vector<boat::store::EventRecord> events) {
+  try {
+    replay_base_time_ = std::chrono::steady_clock::now();
+    replay_base_tick_ = events.front().tick;
+    current_tick_.store(events.front().tick);
 
-  ReplayConfig config = replay_cfg;
-  config.trace_id = trace_id;
-  config.start_tick = events.front().tick;
-  Start(config);
+    double speed_multiplier = active_config_.speed_multiplier;
+    if (speed_multiplier <= 0.0) speed_multiplier = 1.0;
+
+    for (const auto& event : events) {
+      // Honour pause / stop.
+      {
+        std::unique_lock<std::mutex> lock(pause_mutex_);
+        pause_cv_.wait(lock, [this] {
+          return !running_.load() || !paused_.load();
+        });
+      }
+      if (!running_.load()) break;
+
+      // Absolute-time scheduling, mirroring ReplayLoop's frame path.
+      if (active_config_.speed == ReplaySpeed::REAL_TIME ||
+          active_config_.speed == ReplaySpeed::ACCELERATED) {
+        const std::uint64_t tick_delta =
+            (event.tick > replay_base_tick_) ? (event.tick - replay_base_tick_) : 0;
+        const auto tick_offset_ns =
+            static_cast<double>(tick_delta * tick_duration_.count());
+        const auto deadline_offset = std::chrono::nanoseconds(
+            static_cast<std::uint64_t>(tick_offset_ns / speed_multiplier));
+        tick_timer_->WaitUntil(replay_base_time_ + deadline_offset);
+      }
+
+      // Replay the event as a named signal onto the signal bus.
+      const double value = DecodeNumericBlob(event.value_blob);
+      {
+        std::lock_guard<std::mutex> lock(forwarder_mutex_);
+        if (signal_forwarder_) {
+          signal_forwarder_(event.signal_id, value);
+        }
+      }
+
+      // gRPC streaming parity (StreamReplay / event-bus consumers).
+      std::string blob(event.value_blob.begin(), event.value_blob.end());
+      boat::core::BusEvent replay_event;
+      replay_event.type = kReplayBusEventType;
+      replay_event.tick = event.tick;
+      replay_event.payload = blob;
+      event_bus_.Publish(std::move(replay_event));
+      {
+        std::lock_guard<std::mutex> lock(event_queue_mutex_);
+        event_queue_.push_back({event.tick, std::move(blob)});
+      }
+
+      current_tick_.store(event.tick);
+
+      if (active_config_.speed == ReplaySpeed::STEP_BY_STEP) {
+        paused_.store(true);
+        std::unique_lock<std::mutex> lock(pause_mutex_);
+        pause_cv_.wait(lock, [this] {
+          return !running_.load() || !paused_.load();
+        });
+        if (!running_.load()) break;
+      }
+    }
+  } catch (const std::exception& ex) {
+    std::lock_guard<std::mutex> lock(error_mutex_);
+    last_error_ = ex.what();
+  } catch (...) {
+    std::lock_guard<std::mutex> lock(error_mutex_);
+    last_error_ = "unknown signal-replay error";
+  }
+  paused_.store(false);
+  running_.store(false);
+  pause_cv_.notify_all();
 }
 
 void ReplayController::Seek(std::uint64_t tick) {
@@ -243,6 +317,11 @@ std::string ReplayController::LastError() const {
 void ReplayController::SetEventForwarder(EventForwarder forwarder) {
   std::lock_guard<std::mutex> lock(forwarder_mutex_);
   event_forwarder_ = std::move(forwarder);
+}
+
+void ReplayController::SetSignalForwarder(SignalForwarder forwarder) {
+  std::lock_guard<std::mutex> lock(forwarder_mutex_);
+  signal_forwarder_ = std::move(forwarder);
 }
 
 const ReplayConfig& ReplayController::GetActiveConfig() const {

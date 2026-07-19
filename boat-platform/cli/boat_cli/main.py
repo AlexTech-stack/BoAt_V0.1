@@ -7,6 +7,7 @@ from boat.client import BoAtClient
 from .ai import ai_app
 from .can_tp import can_tp_app
 from .db import db_app
+from .device import device_app
 from .frame import frame_app
 from .pdu import pdu_app
 from .plugin import plugin_app
@@ -25,6 +26,7 @@ app.add_typer(replay_app,   name="replay")
 app.add_typer(plugin_app,   name="plugin")
 app.add_typer(can_tp_app,   name="can-tp")
 app.add_typer(frame_app,    name="frame", help="Unified frame send / subscribe via FrameService.")
+app.add_typer(device_app,   name="device", help="Power supplies, relays, generators via DeviceService.")
 app.add_typer(pdu_app,      name="pdu",  help="PDU routing and transmission.")
 app.add_typer(db_app,       name="db",   help="PDU database inspection.")
 app.add_typer(test_app,     name="test",  help="Run tests and inspect test configurations.")

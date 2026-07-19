@@ -244,7 +244,7 @@ def run(
     ),
     trace_format: str = typer.Option(
         "blf", "--trace-format",
-        help="Trace recording format (blf, asc, pcap)",
+        help="Trace recording format (blf, asc, pcap, pcapng)",
     ),
     recorder_url: Optional[str] = typer.Option(
         None, "--recorder-url",

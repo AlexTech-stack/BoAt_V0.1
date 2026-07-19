@@ -40,6 +40,9 @@ class _GatewayManager:
             env = os.environ.copy()
             env["BOAT_CAN_INTERFACES"] = self._build_can_ifaces()
             env["BOAT_ETH_INTERFACES"] = self._build_eth_ifaces()
+            node_plugins = self._env_cfg.node_plugin_specs()
+            if node_plugins:
+                env["BOAT_NODE_PLUGINS"] = ",".join(node_plugins)
 
             self._process = subprocess.Popen(
                 [binary],

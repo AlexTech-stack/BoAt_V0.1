@@ -1,6 +1,6 @@
 """
 BoAt Platform — Ethernet Trace Analyzer
-Read .pcap captures, identify protocols (VLAN/EtherType, DoIP, SOME/IP),
+Read .pcap/.pcapng captures, identify protocols (VLAN/EtherType, DoIP, SOME/IP),
 reconstruct TCP sessions, and classify UDP flows as cyclic vs event-driven.
 Run:  python3 tools/eth_trace_analyzer.py
 Open: http://localhost:8090
@@ -25,10 +25,10 @@ from boat.eth_trace_analyzer import EthTraceAnalyzer
 _PORT = int(os.environ.get("BOAT_ETH_ANALYZER_PORT", "8090"))
 _CONFIG_DIR = Path(__file__).resolve().parent.parent / "boat-platform" / "config"
 _RECORDINGS_DIR = Path(__file__).resolve().parent.parent / "boat-platform" / "traces"
-# EthernetPcapReader only parses the classic pcap global header
-# (DLT_EN10MB) -- .pcapng is a different, block-based format it doesn't
-# understand, so it's deliberately not listed as supported here.
-_SUPPORTED_SUFFIXES = (".pcap",)
+# EthTraceAnalyzer supports both classic pcap (DLT_EN10MB only) and
+# pcapng (a pcapng file may also carry CAN interfaces -- boat.pcapng
+# extracts only the Ethernet ones, CAN interfaces are silently skipped).
+_SUPPORTED_SUFFIXES = (".pcap", ".pcapng")
 
 app = FastAPI()
 
@@ -47,8 +47,9 @@ def api_pcap_list():
     files = []
     for d in [_RECORDINGS_DIR, _CONFIG_DIR, Path("/tmp"), Path.home(), Path.home() / "traces", Path.home() / "traces" / "pcap"]:
         try:
-            for f in Path(d).glob("*.pcap"):
-                files.append(str(f))
+            for pattern in ("*.pcap", "*.pcapng"):
+                for f in Path(d).glob(pattern):
+                    files.append(str(f))
         except Exception:
             pass
     files = sorted(set(files))[:200]
@@ -65,7 +66,7 @@ def api_pcap_analyze(body: dict):
     if not fp.exists():
         raise HTTPException(404, f"File not found: {fp}")
     if fp.suffix.lower() not in _SUPPORTED_SUFFIXES:
-        raise HTTPException(400, f"Unsupported format: {fp.suffix}. Supported: .pcap")
+        raise HTTPException(400, f"Unsupported format: {fp.suffix}. Supported: .pcap, .pcapng")
 
     t0 = time.perf_counter()
     try:
@@ -227,7 +228,7 @@ tr:hover td { background:rgba(88,166,255,0.03); }
 <div class="layout">
   <div class="sidebar">
     <div class="sidebar-toolbar">
-      <input id="file-path" type="text" placeholder="/path/to/capture.pcap"/>
+      <input id="file-path" type="text" placeholder="/path/to/capture.pcap|.pcapng"/>
       <button class="btn btn-primary" onclick="browseFile()">Browse</button>
     </div>
     <div style="padding:8px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px">
@@ -244,7 +245,7 @@ tr:hover td { background:rgba(88,166,255,0.03); }
   <div class="main" id="main-content">
     <div class="empty-state" id="empty-state">
       <h2>No capture analyzed</h2>
-      <p>Enter a .pcap path and click Analyze.</p>
+      <p>Enter a .pcap/.pcapng path and click Analyze.</p>
     </div>
     <div class="pane" id="results" style="display:none"></div>
   </div>
@@ -299,7 +300,7 @@ let pduResult = null;
 
 async function runAnalyze() {
   const path = document.getElementById("file-path").value.trim();
-  if (!path) { toast("Enter a .pcap path first", "error"); return; }
+  if (!path) { toast("Enter a .pcap/.pcapng path first", "error"); return; }
   document.getElementById("analyze-btn").disabled = true;
   document.getElementById("pdu-stage-btn").disabled = true;
   document.getElementById("progress-text").textContent = "Reading capture...";

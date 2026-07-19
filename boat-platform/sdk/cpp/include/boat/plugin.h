@@ -5,7 +5,7 @@
 
 #include "boat/frame.h"
 
-#define BOAT_PLUGIN_ABI_VERSION 8
+#define BOAT_PLUGIN_ABI_VERSION 9
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,6 +72,11 @@ typedef struct BoatPluginVTable {
      Returns a JSON array of bus type names, e.g. "[\"can\",\"eth\"]".
      "" or NULL means "accept all". */
   BoatDeclaredBusesFn declared_buses;
+
+  /* Optional (ABI v9): Host -> Plugin delivery of always-on signal-bus values.
+     The signal-bus counterpart of on_frame. Set to NULL if the plugin does
+     not consume signals. The plugin filters delivered signals by name. */
+  BoatSignalReceiveFn on_signal;
 } BoatPluginVTable;
 
 typedef struct BoatPlugin {

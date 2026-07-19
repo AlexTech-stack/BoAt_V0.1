@@ -77,11 +77,12 @@ def _die(msg: str) -> None:
 def cmd_start(
     ctx:      typer.Context,
     fmt:      str  = typer.Option("asc",  "--format", "-f",
-                        help="Output format: asc | blf | pcap"),
+                        help="Output format: asc | blf | pcap | pcapng (pcapng recommended "
+                             "for mixed CAN+Ethernet -- one file, multiple interfaces)"),
     buses:    str  = typer.Option("",     "--buses",  "-b",
                         help="Comma-separated CAN buses, e.g. vcan0,vcan1  (default: all)"),
     eth:      str  = typer.Option("",     "--eth",
-                        help="Comma-separated Ethernet interfaces (pcap only)"),
+                        help="Comma-separated Ethernet interfaces (pcap/pcapng only)"),
     signals:  bool = typer.Option(True,   "--signals/--no-signals",
                         help="Record BoAt bus signals to .jsonl sidecar"),
     output:   str  = typer.Option("traces", "--output", "-o",
@@ -197,7 +198,10 @@ def cmd_status(
 @trace_app.command("replay")
 def cmd_replay(
     ctx:     typer.Context,
-    file:    Path = typer.Argument(..., help="Path to .asc or .blf CAN trace file"),
+    file:    Path = typer.Argument(..., help="Path to .asc or .blf CAN trace file, or a "
+                                              ".pcapng file (only its CAN/CAN-FD records "
+                                              "are replayed; any Ethernet records are "
+                                              "skipped)"),
     buses:   str  = typer.Option("",    "--buses",  "-b",
                         help="Comma-separated CAN interfaces for channel mapping "
                              "(ch1->first, ch2->second, ...). Default: vcan0"),
@@ -216,11 +220,13 @@ def cmd_replay(
                         help="Only replay frames with this CAN ID (hex, e.g. 0x100). "
                              "Comma-separated for multiple IDs."),
 ) -> None:
-    """Replay a CAN trace file (.asc, .blf) through the gateway in real time,
-    sending each frame individually via gRPC.
+    """Replay a CAN trace file (.asc, .blf, or the CAN records of a
+    .pcapng) through the gateway in real time, sending each frame
+    individually via gRPC.
 
-    For Ethernet/pcap replay, use `boat replay import` + `boat replay
-    start`/`stream` instead -- this command supports CAN only.
+    For Ethernet replay (.pcap, or the Ethernet records of a .pcapng), use
+    `boat replay import` + `boat replay start`/`stream` instead -- this
+    command supports CAN only.
     """
     try:
         sys.path.insert(0, "/home/testuser/ProjectBoat/boat-platform/sdk/python")
@@ -235,7 +241,7 @@ def cmd_replay(
         raise typer.Exit(1)
     if file.suffix.lower() == ".pcap":
         print_error(
-            "boat trace replay only supports CAN traces (.asc/.blf). "
+            "boat trace replay only supports CAN traces (.asc/.blf/.pcapng). "
             "For Ethernet/pcap replay, use `boat replay import` + "
             "`boat replay start`/`stream` instead."
         )

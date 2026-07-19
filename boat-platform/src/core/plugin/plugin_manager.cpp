@@ -244,6 +244,27 @@ void PluginManager::DispatchFrame(const BoatFrame& frame) {
   }
 }
 
+void PluginManager::DispatchSignal(const char* name, double value) {
+  if (name == nullptr) return;
+  std::vector<BoatPlugin*> snapshot;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    snapshot.reserve(plugins_.size());
+    for (auto& [n, handle] : plugins_) {
+      (void)n;
+      snapshot.push_back(handle.plugin);
+    }
+  }
+  // Fan out to every plugin implementing on_signal; the plugin decides (by
+  // name) whether it cares. Signal-bus volume is low (device setpoints), so a
+  // simple fan-out is fine — no declared-signal pre-filter like DispatchFrame.
+  for (auto* plugin : snapshot) {
+    if (plugin->vtable->on_signal != nullptr) {
+      plugin->vtable->on_signal(plugin->ctx, name, value);
+    }
+  }
+}
+
 void PluginManager::ShutdownAll() {
   std::vector<std::string> names;
   {

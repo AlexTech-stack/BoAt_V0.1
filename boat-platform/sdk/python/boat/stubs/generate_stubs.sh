@@ -27,4 +27,6 @@ python3 -m grpc_tools.protoc \
   "${PROTO_DIR}/boat/v1/signal.proto" \
   "${PROTO_DIR}/boat/v1/simulation.proto" \
   "${PROTO_DIR}/boat/v1/trace.proto" \
-  "${PROTO_DIR}/boat/v1/frame.proto"
+  "${PROTO_DIR}/boat/v1/frame.proto" \
+  "${PROTO_DIR}/boat/v1/device.proto" \
+  "${PROTO_DIR}/boat/v1/backbone.proto"

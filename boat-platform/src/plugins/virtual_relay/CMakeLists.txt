@@ -1,0 +1,2 @@
+add_boat_plugin(virtual_relay virtual_relay_plugin.cpp)
+target_link_libraries(virtual_relay PRIVATE boat_plugin_sdk)

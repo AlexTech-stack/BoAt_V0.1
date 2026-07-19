@@ -1,4 +1,4 @@
-"""Bulk statistics engine for Ethernet (.pcap) trace analysis.
+"""Bulk statistics engine for Ethernet (.pcap/.pcapng) trace analysis.
 
 Mirrors :mod:`boat.trace_analyzer`'s CAN-side design -- one pass over the
 capture produces per-flow and per-node statistics instead of attempting
@@ -38,6 +38,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from boat.trace_replay import EthernetPcapReader, TraceReplayError
+from boat.pcapng import PcapngError, PcapngReader
 
 # ── well-known automotive-Ethernet protocol signatures ──────────────────
 
@@ -613,18 +614,56 @@ class EthTraceAnalysis:
         return max(0.0, self.last_ts - self.first_ts)
 
 
+class _EthOnlyPcapngReader:
+    """Filters a ``PcapngReader`` down to Ethernet-only records.
+
+    This analyzer is Ethernet-only; a ``.pcapng`` file may also carry CAN
+    interfaces (mixed-bus is the whole point of pcapng), so CAN records are
+    silently skipped here rather than surfaced to ``_process_frame``/
+    ``find_autosar_pdus``, which expect an Ethernet-frame shape
+    (``.dst_mac``/``.src_mac``/``.ethertype``/``.payload``/``.timestamp``).
+    """
+
+    def __init__(self, path: str) -> None:
+        self._reader = PcapngReader(path)
+
+    def __enter__(self) -> "_EthOnlyPcapngReader":
+        return self
+
+    def __exit__(self, *args) -> None:
+        self._reader.__exit__(*args)
+
+    def __iter__(self) -> "_EthOnlyPcapngReader":
+        return self
+
+    def __next__(self):
+        while True:
+            record = next(self._reader)
+            if hasattr(record, "ethertype"):
+                return record
+
+
 # ── analyzer ──────────────────────────────────────────────────────────────
 
 class EthTraceAnalyzer:
-    """Bulk-analyze an Ethernet .pcap capture.
+    """Bulk-analyze an Ethernet .pcap/.pcapng capture.
 
     Args:
-        path: Path to a DLT_EN10MB pcap file.
+        path: Path to a DLT_EN10MB pcap file, or a pcapng file (only its
+              Ethernet interfaces are analyzed; any CAN interfaces are
+              skipped).
     """
 
     def __init__(self, path: str) -> None:
         self._path = path
         self._analysis: EthTraceAnalysis | None = None
+
+    def _open_eth_reader(self):
+        """Return an Ethernet-frame-yielding, context-manager-compatible
+        reader appropriate for ``self._path``'s suffix."""
+        if self._path.lower().endswith(".pcapng"):
+            return _EthOnlyPcapngReader(self._path)
+        return EthernetPcapReader(self._path)
 
     def analyze(self) -> EthTraceAnalysis:
         """Single pass over the capture. Builds protocol/VLAN histograms,
@@ -634,10 +673,10 @@ class EthTraceAnalyzer:
         result = EthTraceAnalysis(path=self._path)
 
         try:
-            with EthernetPcapReader(self._path) as reader:
+            with self._open_eth_reader() as reader:
                 for frame in reader:
                     self._process_frame(frame, result)
-        except TraceReplayError as e:
+        except (TraceReplayError, PcapngError) as e:
             result.errors.append(str(e))
 
         self._analysis = result
@@ -1146,7 +1185,7 @@ class EthTraceAnalyzer:
 
         per_channel: dict[int, dict[tuple, PduChannelStats]] = defaultdict(dict)
 
-        with EthernetPcapReader(self._path) as reader:
+        with self._open_eth_reader() as reader:
             for frame in reader:
                 payload, ethertype = frame.payload, frame.ethertype
                 for _ in range(2):
