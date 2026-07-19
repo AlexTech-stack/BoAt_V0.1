@@ -6,7 +6,7 @@ Build an open-source, production-grade automotive simulation and testing platfor
 
 ## Stakeholders
 
-OEM engineers, Tier-1 suppliers, open-source community contributors, CI/CD automation consumers.
+engineers, Tier-1 suppliers, open-source community contributors, CI/CD automation consumers.
 
 ## Milestones
 
@@ -102,7 +102,7 @@ OEM engineers, Tier-1 suppliers, open-source community contributors, CI/CD autom
 
 ## Governance
 
-- Work management via GitHub Issues and Milestones
+- Work management via Git Issues and Milestones
 - RFC process required for breaking changes
 - Semantic versioning for all release artifacts and APIs
 
