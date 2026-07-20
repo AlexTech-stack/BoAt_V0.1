@@ -2,26 +2,31 @@
 
 | Field | Value |
 |---|---|
-| **Date** | |
-| **Tester Name** | |
+| **Date** | 20.07.2026 |
+| **Tester Name** | Alexander Günther |
 | **TestVersion** | v0.1.0 |
-| **SW under Test** | v0.1.3-alpha |
-| **TestSetup** | |
+| **SW** | v0.1.3-alpha |
+| **TestSetup** | Linux testcomputer 6.17.0-29-generic #29~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC x86_64 GNU/Linux |
+| | Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz 8 GB DDR4|
+| | PEAK System PCAN-USB Pro FD |
+| | USB2CANFDV2 1-4.4 WeAct Studio B245208A348 |
+| | D-Link Corp. DUB-E100 Fast Ethernet Adapter(rev.B1) [ASIX AX88772] |
+| | ASIX Electronics Corp. AX88179 Gigabit Ethernet |
 
 ## Test Case Overview
 
 | TestSet | TestCase | Verdict | Comment |
 |---|---|---|---|
-| CAN | TC_CAN_001_send_frame_cli | NOT_TESTED | |
-| CAN | TC_CAN_002_receive_frame_subscribe | NOT_TESTED | |
-| CAN | TC_CAN_003_send_canfd_frame | NOT_TESTED | |
-| CAN | TC_CAN_004_canfd_length_rounding | NOT_TESTED | |
-| CAN | TC_CAN_005_extended_29bit_id | NOT_TESTED | |
+| CAN | TC_CAN_001_send_frame_cli | OK | |
+| CAN | TC_CAN_002_receive_frame_subscribe | NOK | Payload in lowercase|
+| CAN | TC_CAN_003_send_canfd_frame | OK | |
+| CAN | TC_CAN_004_canfd_length_rounding | OK | |
+| CAN | TC_CAN_005_extended_29bit_id | OK | |
 | CAN | TC_CAN_006_self_sent_loopback_flag | NOT_TESTED | |
-| CAN | TC_CAN_007_multi_bus_isolation | NOT_TESTED | |
-| CAN | TC_CAN_008_list_ifaces | NOT_TESTED | |
-| CAN | TC_CAN_009_deprecated_wrapper_compat | NOT_TESTED | |
-| CAN | TC_CAN_010_high_rate_burst | NOT_TESTED | |
+| CAN | TC_CAN_007_multi_bus_isolation | OK | |
+| CAN | TC_CAN_008_list_ifaces | OK | |
+| CAN | TC_CAN_009_deprecated_wrapper_compat | INCONCLUSIVE | TC has to be removed |
+| CAN | TC_CAN_010_high_rate_burst | OK | |
 | CanTp | TC_CanTp_001_configure_session | NOT_TESTED | |
 | CanTp | TC_CanTp_002_single_frame_send | NOT_TESTED | |
 | CanTp | TC_CanTp_003_multi_frame_segmentation | NOT_TESTED | |
