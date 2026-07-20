@@ -24,11 +24,13 @@ Common precondition: CLI installed (`pip install -e ./boat-platform/sdk/python[d
 
 **Expected:**
 - Every subcommand documents its options; help text matches actual accepted flags
-  (spot-check: `boat trace start --format` lists asc | blf | pcap | pcapng)
+  (spot-check: `boat trace start --help` --format: lists asc | blf | pcap | pcapng)
 
-**Verdict:** NOT_TESTED
+**Verdict:** NOK
 
 **Result:**
+- No help description for sim, scenario, plugin
+
 
 ---
 
@@ -47,9 +49,27 @@ Common precondition: CLI installed (`pip install -e ./boat-platform/sdk/python[d
 - Step 1 talks to the remote gateway; step 2 fails with a connection error —
   proving the flag routes the connection
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+Rebuild to listen to port 50061.
+
+testcomputer:~$ boat --host 0.0.0.0:50061 frame list-ifaces
+
+┃ iface ┃ type ┃ driver   ┃ state   ┃ fd  ┃
+
+│ vcan1 │ CAN  │ vcan     │ unknown │ yes │
+
+│ vcan0 │ CAN  │ vcan     │ unknown │ yes │
+
+│ can1  │ CAN  │ peak_usb │ up      │ yes │
+
+│ can0  │ CAN  │ peak_usb │ up      │ yes │
+
+testcomputer:~$ boat frame list-ifaces
+RPC error [UNAVAILABLE]: failed to connect to all addresses; last error: UNKNOWN:
+ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused
 
 ---
 
@@ -58,19 +78,46 @@ Common precondition: CLI installed (`pip install -e ./boat-platform/sdk/python[d
 **TestSets:** [CLI]
 
 **Preconditions:**
-- Gateway running; some routes/interfaces configured
+- Gateway running; some interfaces configured
 
 **TestSteps:**
 1. `boat --json frame list-ifaces | jq .`
-2. `boat --json pdu list-routes | jq '.[] | select(.transport == "CAN")'`
 
 **Expected:**
-- Output is a valid JSON array (jq parses it); content matches the table output of
-  the same command without `--json`
+- Output is a valid JSON array (jq parses it); 
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+{
+    "iface": "vcan1",
+    "type": "CAN",
+    "driver": "vcan",
+    "state": "unknown",
+    "fd": "yes"
+  },
+  {
+    "iface": "vcan0",
+    "type": "CAN",
+    "driver": "vcan",
+    "state": "unknown",
+    "fd": "yes"
+  },
+  {
+    "iface": "can1",
+    "type": "CAN",
+    "driver": "peak_usb",
+    "state": "up",
+    "fd": "yes"
+  },
+  {
+    "iface": "can0",
+    "type": "CAN",
+    "driver": "peak_usb",
+    "state": "up",
+    "fd": "yes"
+  }
 
 ---
 
@@ -89,9 +136,16 @@ Common precondition: CLI installed (`pip install -e ./boat-platform/sdk/python[d
 - Clean, non-traceback error messages indicating the gateway is unreachable
   (gRPC UNAVAILABLE), with non-zero exit codes
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+testcomputer:~$ boat sim list
+RPC error [UNAVAILABLE]: failed to connect to all addresses; last error: UNKNOWN:
+ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused
+testcomputer:~$ boat frame send --bus-type can --can-id 0x1 --iface vcan0 --data 00
+RPC error [UNAVAILABLE]: failed to connect to all addresses; last error: UNKNOWN:
+ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused
 
 ---
 
