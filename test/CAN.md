@@ -22,7 +22,7 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 - CLI reports success
 - `candump` shows exactly one frame: ID `123`, DLC 4, data `AA BB CC DD`
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -42,10 +42,12 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 - The subscriber prints the frame with ID `0x456`, data `DEADBEEF`, iface `vcan0`,
   and a plausible timestamp
 
-**Verdict:** NOT_TESTED
+**Verdict:** NOK
 
 **Result:**
-
+- No timestamp -> check expectation
+- Payload displayed in lowercase
+- Values and performance: OK
 ---
 
 ### TC_CAN_003_send_canfd_frame
@@ -53,7 +55,7 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 **TestSets:** [CAN], [CLI]
 
 **Preconditions:**
-- `candump vcan0` running
+- `candump vcan0 -x` running
 
 **TestSteps:**
 1. `boat frame send --bus-type canfd --can-id 0x123 --iface vcan0 --data 00112233445566778899AABBCCDDEEFF`
@@ -62,10 +64,13 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 - `candump` shows a CAN FD frame (flags indicate FDF) with a 16-byte payload
 - Bus type `canfd` implies the FD flag — no separate flag argument needed
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
-
+- Msg is sent in FD Format (FDF-Bit set) (OK)
+- Additional TestCase for BRS field needed
+  - BRS Bit not set
+  - No BRS flag in CLI
 ---
 
 ### TC_CAN_004_canfd_length_rounding
@@ -83,7 +88,7 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 - The frame is transmitted with the payload padded/rounded up to the next valid FD
   length (16), not rejected and not truncated
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -103,7 +108,7 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 - `candump` shows the full 29-bit identifier `1BFC829F` (EFF flag set), not a
   truncated 11-bit ID
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -145,7 +150,7 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 **Expected:**
 - The frame appears on `vcan0` and NOT on `vcan1` — no cross-bus leakage
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -166,9 +171,35 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 - Both interfaces listed with their metadata (driver kind, FD capability)
 - JSON variant emits a machine-parseable array with the same content
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+*virtual*
+
+testcomputer:~$ boat frame list-ifaces
+
+┃ iface ┃ type ┃ driver ┃ state   ┃ fd  ┃
+
+│ vcan1 │ CAN  │ vcan   │ unknown │ yes │
+
+│ vcan0 │ CAN  │ vcan   │ unknown │ yes │
+
+testcomputer:~$ boat --json frame list-ifaces
+[{"iface": "vcan1", "type": "CAN", "driver": "vcan", "state": "unknown", "fd": "yes"}, {"iface": "vcan0", "type": "CAN", "driver": "vcan", "state": "unknown", "fd": "yes"}]
+
+*PEAK CAN*
+
+testcomputer:~$ boat frame list-ifaces
+
+┃ iface ┃ type ┃ driver   ┃ state ┃ fd  ┃
+
+│ can1  │ CAN  │ peak_usb │ up    │ yes │
+
+│ can0  │ CAN  │ peak_usb │ up    │ yes │
+
+testcomputer:~$ boat --json frame list-ifaces
+[{"iface": "can1", "type": "CAN", "driver": "peak_usb", "state": "up", "fd": "yes"}, {"iface": "can0", "type": "CAN", "driver": "peak_usb", "state": "up", "fd": "yes"}]
 
 ---
 
@@ -187,9 +218,10 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 - The wrapper still works and produces the same on-bus result as `boat frame send`
 - Deprecation is indicated (help text or warning), pointing to `boat frame`
 
-**Verdict:** NOT_TESTED
+**Verdict:** INCONCLUSIVE
 
 **Result:**
+- TC has to be removed "boat can .." command removed and shall not be used
 
 ---
 
@@ -203,12 +235,14 @@ Common precondition for all cases: gateway running with `BOAT_CAN_INTERFACES=vca
 **TestSteps:**
 1. Send 1000 frames in a tight loop via the Python SDK
    (`FrameNode.send_can("vcan0", 0x100+i%16, ...)`)
-2. Count frames observed by `candump`
+    or
+   (python3 test/TestCases/TC_CAN_010_high_rate_burst.py)
+3. Count frames observed by `candump`
 
 **Expected:**
 - All 1000 frames arrive on the bus, no drops, gateway remains responsive
   (`boat frame list-ifaces` still answers during the burst)
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
