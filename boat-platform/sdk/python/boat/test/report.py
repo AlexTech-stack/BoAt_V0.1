@@ -27,6 +27,7 @@ class TestInfo:
     file: Optional[str] = None
     version: Optional[str] = None
     description: Optional[str] = None
+    steps: Optional[list[str]] = None
 
 
 @dataclass

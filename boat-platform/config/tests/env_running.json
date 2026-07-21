@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "name": "running-gateway",
+  "description": "Connects to an already-running gateway on localhost:50051",
+  "gateway": {
+    "address": "localhost:50051"
+  },
+  "buses": {
+    "can1": { "type": "virtual", "interface": "vcan0" },
+    "can2": { "type": "virtual", "interface": "vcan1" },
+    "eth0": {
+      "type": "virtual_eth",
+      "interface": "veth0",
+      "multicast_group": "239.255.0.1",
+      "port": 51000
+    }
+  }
+}

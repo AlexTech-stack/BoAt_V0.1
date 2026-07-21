@@ -26,7 +26,11 @@
           "name":       { "type": "string" },
           "file":       { "type": "string" },
           "description": { "type": "string" },
-          "timeout_s":  { "type": "integer", "minimum": 1, "default": 60 }
+          "timeout_s":  { "type": "integer", "minimum": 1, "default": 60 },
+          "steps": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
         }
       }
     }

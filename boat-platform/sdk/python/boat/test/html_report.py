@@ -49,6 +49,13 @@ def generate_html_report(report: TestReport) -> str:
         _info_row(parts, "File", report.test.file)
         _info_row(parts, "Version", report.test.version)
         _info_row(parts, "Description", report.test.description)
+        if report.test.steps:
+            parts.append('    <tr><td class="info-label" style="vertical-align:top">Steps</td><td>')
+            parts.append('      <ol style="margin:0;padding-left:20px">')
+            for s in report.test.steps:
+                parts.append(f'        <li>{_e(s)}</li>')
+            parts.append('      </ol>')
+            parts.append('    </td></tr>')
     parts.append('  </table>')
     parts.append("</div>")
 

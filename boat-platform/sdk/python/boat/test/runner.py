@@ -254,7 +254,7 @@ class TestSuiteRunner:
 
         report = TestReport()
         report.test = TestInfo(id=entry.id, name=entry.name, description=entry.description,
-                               group=self.manifest.name)
+                               group=self.manifest.name, steps=entry.steps)
         report.environment = harness.config.snapshot()
         report.execution.started_at = _now_iso()
 

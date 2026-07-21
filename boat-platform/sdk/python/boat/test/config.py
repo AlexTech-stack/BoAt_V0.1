@@ -326,6 +326,7 @@ class ManifestTestEntry:
     file: str
     description: Optional[str] = None
     timeout_s: int = 60
+    steps: Optional[list[str]] = None
 
     @classmethod
     def from_dict(cls, d: dict) -> ManifestTestEntry:
@@ -335,6 +336,7 @@ class ManifestTestEntry:
             file=d["file"],
             description=d.get("description"),
             timeout_s=d.get("timeout_s", 60),
+            steps=d.get("steps"),
         )
 
     def to_dict(self) -> dict:
@@ -343,6 +345,8 @@ class ManifestTestEntry:
             d["description"] = self.description
         if self.timeout_s != 60:
             d["timeout_s"] = self.timeout_s
+        if self.steps is not None:
+            d["steps"] = self.steps
         return d
 
 

@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "name": "smoke-tests",
+  "version": "0.1.0",
+  "description": "Quick smoke tests to verify gateway connectivity and basic functionality",
+  "environment_config": "boat-platform/config/tests/env_running.json",
+  "tests": [
+    {
+      "id": "TC_SMOKE_001_list_ifaces",
+      "name": "List available CAN and Ethernet interfaces",
+      "file": "boat frame list-ifaces",
+      "description": "Verify the gateway responds and lists its registered interfaces",
+      "timeout_s": 10,
+      "steps": [
+        "Run `boat frame list-ifaces` to list all registered bus interfaces",
+        "Verify the output contains expected CAN and Ethernet interfaces",
+        "Confirm exit code is 0 (success)"
+      ]
+    },
+    {
+      "id": "TC_SMOKE_002_can_burst",
+      "name": "Send 1000 CAN frames with 1ms delay and random payload",
+      "file": "python3 test/send_can_burst.py",
+      "description": "Burst 1000 CAN frames on vcan0 via FrameNode and verify no failures",
+      "timeout_s": 30,
+      "steps": [
+        "Connect FrameNode to gateway at localhost:50051",
+        "Loop 1000 iterations: generate random 1-8 byte payload and send CAN frame on vcan0 with ID 0x100",
+        "Sleep 1ms between consecutive frames",
+        "Track accepted vs failed frames",
+        "Print summary statistics and return non-zero exit code if any frames failed"
+      ]
+    }
+  ]
+}
