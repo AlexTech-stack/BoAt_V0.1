@@ -57,14 +57,11 @@ Rebuild to listen to port 50061.
 
 testcomputer:~$ boat --host 0.0.0.0:50061 frame list-ifaces
 
-┃ iface ┃ type ┃ driver   ┃ state   ┃ fd  ┃
-
+| iface | type | driver | state | fd |
+| --- | --- | --- | --- | --- |
 │ vcan1 │ CAN  │ vcan     │ unknown │ yes │
-
 │ vcan0 │ CAN  │ vcan     │ unknown │ yes │
-
 │ can1  │ CAN  │ peak_usb │ up      │ yes │
-
 │ can0  │ CAN  │ peak_usb │ up      │ yes │
 
 testcomputer:~$ boat frame list-ifaces
@@ -143,6 +140,7 @@ ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused
 testcomputer:~$ boat sim list
 RPC error [UNAVAILABLE]: failed to connect to all addresses; last error: UNKNOWN:
 ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused
+
 testcomputer:~$ boat frame send --bus-type can --can-id 0x1 --iface vcan0 --data 00
 RPC error [UNAVAILABLE]: failed to connect to all addresses; last error: UNKNOWN:
 ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused
@@ -165,9 +163,17 @@ ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused
 - Each rejects with a specific message (invalid CAN id / invalid hex data / file not
   found) and non-zero exit code; nothing is sent
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+testcomputer:~$ boat frame send --bus-type can --can-id notahex --iface vcan0 --data 00
+Invalid numeric value: invalid literal for int() with base 10: 'notahex'
+
+testcomputer:~$ boat frame send --bus-type can --can-id 0x123 --iface vcan0 --data GGHH
+Invalid hex payload: non-hexadecimal number found in fromhex() arg at position 0
+
+testcomputer:~$ boat trace replay missing_file.blf --buses vcan0
+File not found: /home/testuser/missing_file.blf
 
 ---
 
@@ -176,20 +182,41 @@ ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused
 **TestSets:** [CLI]
 
 **Preconditions:**
-- Gateway running; test environments defined
+- Gateway running; test environments defined; Recorder Started (is part of ./start_ui.sh)
 
 **TestSteps:**
-1. `boat test list-environments`
-2. `boat test run --trace-format pcapng` against an environment
+1. `boat test list-environments` (default path is ./config/tests otherwise use -p with path to the tests)
+2. `boat test run test/manifest_smoke.json --trace-format pcapng --recorder-url http://localhost:8083` against an environment
 
 **Expected:**
-- Environments are listed; the run executes, records traces in the requested format,
-  and produces a result report with per-test verdicts
+- 1 Environments are listed;
+- 2 the run executes, records traces in the requested format (in traces folder),
+  and produces a result report with per-test verdicts (in reports folder)
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+1. 
 
+| file | name | buses | dut | gateway |
+|---|---|---|---|---|
+| env_hybrid.json | hybrid-hil-01 | can1=can0<br>can2=can1<br>eth0=veth0 | physical | localhost:50051<br>(boat_gateway)<br>tick=10ms |
+| env_physical.json | physical-hil-01 | can1=can0<br>can2=can1<br>eth0=eth0 | physical | localhost:50051<br>(boat_gateway)<br>tick=10ms |
+| env_running.json | running-gateway | can1=vcan0<br>can2=vcan1<br>eth0=veth0 | — | localhost:50051<br>tick=10ms |
+| env_virtual.json | virtual-ci | can1=vcan0<br>can2=vcan1<br>eth0=veth0 | plugin:./build/… | localhost:50051<br>(boat_gateway)<br>tick=10ms |
+
+
+2.
+
+boat test run test/manifest_smoke.json --trace-format pcapng --recorder-url http://localhost:8083
+  [PASS] TC_SMOKE_001_list_ifaces (287ms)
+  [PASS] TC_SMOKE_002_can_burst (2294ms)
+
+Results: 2/2 passed, 0 failed
+  ✓ TC_SMOKE_001_list_ifaces: PASS (287ms)
+  ✓ TC_SMOKE_002_can_burst: PASS (2294ms
+
+  
 ---
 
 ### TC_CLI_007_ai_assistants
