@@ -32,12 +32,12 @@
 | CanTp | TC_CanTp_003_multi_frame_segmentation | NOT_TESTED | |
 | CanTp | TC_CanTp_004_always_on_reception | NOT_TESTED | |
 | CanTp | TC_CanTp_005_send_without_configuration | NOT_TESTED | |
-| CLI | TC_CLI_001_help_all_subcommands | NOT_TESTED | |
-| CLI | TC_CLI_002_host_flag | NOT_TESTED | |
-| CLI | TC_CLI_003_json_mode | NOT_TESTED | |
-| CLI | TC_CLI_004_gateway_unreachable_error | NOT_TESTED | |
-| CLI | TC_CLI_005_invalid_argument_handling | NOT_TESTED | |
-| CLI | TC_CLI_006_system_test_runner | NOT_TESTED | |
+| CLI | TC_CLI_001_help_all_subcommands | NOK | No help description for sim, scenario, plugin |
+| CLI | TC_CLI_002_host_flag | OK | done with gateway at 0.0.0.0:50061 |
+| CLI | TC_CLI_003_json_mode | OK | |
+| CLI | TC_CLI_004_gateway_unreachable_error | OK | |
+| CLI | TC_CLI_005_invalid_argument_handling | OK | |
+| CLI | TC_CLI_006_system_test_runner | OK | HTML Looks very oldschool. Style eeds some rework |
 | CLI | TC_CLI_007_ai_assistants | NOT_TESTED | |
 | Devices | TC_Devices_001_virtual_psu_set_and_read | NOT_TESTED | |
 | Devices | TC_Devices_002_virtual_psu_ohms_law_current | NOT_TESTED | |
