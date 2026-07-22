@@ -39,20 +39,20 @@
 | CLI | TC_CLI_005_invalid_argument_handling | OK | |
 | CLI | TC_CLI_006_system_test_runner | OK | HTML Looks very oldschool. Style eeds some rework |
 | CLI | TC_CLI_007_ai_assistants | NOT_TESTED | |
-| Devices | TC_Devices_001_virtual_psu_set_and_read | NOT_TESTED | |
-| Devices | TC_Devices_002_virtual_psu_ohms_law_current | NOT_TESTED | |
-| Devices | TC_Devices_003_virtual_relay_set_state | NOT_TESTED | |
-| Devices | TC_Devices_004_device_manager_discovery | NOT_TESTED | |
-| Devices | TC_Devices_005_setcontrol_rejects_unknown_channel | NOT_TESTED | |
-| Devices | TC_Devices_006_kl15_gates_restbus | NOT_TESTED | |
-| Devices | TC_Devices_007_record_replay_device_curve | NOT_TESTED | |
-| Devices | TC_Devices_008_scpi_physical_psu_mock | NOT_TESTED | |
-| Devices | TC_Devices_009_scpi_physical_psu_hardware | NOT_TESTED | |
-| Devices | TC_Devices_010_stream_state | NOT_TESTED | |
-| Devices | TC_Devices_011_determinism_unaffected | NOT_TESTED | |
-| Devices | TC_Devices_012_cli_surface | NOT_TESTED | |
-| Devices | TC_Devices_013_virtual_generator | NOT_TESTED | |
-| Devices | TC_Devices_014_environment_devices_block | NOT_TESTED | |
+| Devices | TC_Devices_001_virtual_psu_set_and_read | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_002_virtual_psu_ohms_law_current | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_003_virtual_relay_set_state | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_004_device_manager_discovery | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_005_setcontrol_rejects_unknown_channel | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_006_kl15_gates_restbus | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_007_record_replay_device_curve | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_008_scpi_physical_psu_mock | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_009_scpi_physical_psu_hardware | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_010_stream_state | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_011_determinism_unaffected | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_012_cli_surface | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_013_virtual_generator | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
+| Devices | TC_Devices_014_environment_devices_block | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
 | Ethernet | TC_Ethernet_001_send_frame_cli | NOT_TESTED | |
 | Ethernet | TC_Ethernet_002_subscribe | NOT_TESTED | |
 | Ethernet | TC_Ethernet_003_mixed_subscribe_can_and_eth | NOT_TESTED | |
