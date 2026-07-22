@@ -21,9 +21,14 @@ driver selection, plugin loading, tick configuration, and shutdown.
 - Gateway starts without error and logs that it is serving gRPC on `0.0.0.0:50051`
 - `list-ifaces` shows `vcan0` as a CAN interface using the virtual driver
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+| iface | type | driver | state   | fd  |
+|---|---|---|---|---|
+| vcan0 | CAN  | vcan   | unknown | yes |
+
 
 ---
 
@@ -41,9 +46,15 @@ driver selection, plugin loading, tick configuration, and shutdown.
 **Expected:**
 - Both interfaces are listed and usable (a frame can be sent on each)
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+| iface | type | driver | state   | fd  |
+|---|---|---|---|---|
+| vcan1 | CAN  | vcan   | unknown | yes |
+| vcan0 | CAN  | vcan   | unknown | yes |
+
 
 ---
 
@@ -65,9 +76,15 @@ driver selection, plugin loading, tick configuration, and shutdown.
   `vcan0` with the virtual driver
 - No error at startup; both interfaces accept frames
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+Bus 001 Device 011: ID 0c72:0011 PEAK System PCAN-USB Pro FD
+
+| iface | type | driver | state   | fd  |
+|---|---|---|---|---|
+| vcan0 | CAN  | vcan   | unknown | yes |
+| can0 | CAN  | peak_usb   | up | yes |
 
 ---
 
@@ -79,15 +96,22 @@ driver selection, plugin loading, tick configuration, and shutdown.
 - A veth pair exists (`sudo ip link add veth0 type veth peer name veth1 && sudo ip link set veth0 up && sudo ip link set veth1 up`)
 
 **TestSteps:**
-1. Start the gateway with `BOAT_ETH_INTERFACES=veth0`
+1. Start the gateway with `BOAT_ETH_INTERFACES=raw:veth0`
 2. Run `boat frame list-ifaces`
 
 **Expected:**
 - `veth0` is listed as an Ethernet interface
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+| iface | type | driver | state   | fd  |
+|---|---|---|---|---|
+| vcan0 | CAN  | vcan   | unknown | yes |
+| veth0 | ETHERNET  | ---   | --- | --- |
+
+
 
 ---
 
@@ -108,10 +132,10 @@ driver selection, plugin loading, tick configuration, and shutdown.
   (CAN-TP bound to `vcan0`)
 - `boat plugin list` shows both plugins as loaded
 
-**Verdict:** NOT_TESTED
+**Verdict:** NOK
 
 **Result:**
-
+boat plugin list returns empty
 ---
 
 ### TC_Gateway_006_v7_plugin_rejected
@@ -141,6 +165,7 @@ driver selection, plugin loading, tick configuration, and shutdown.
 
 **Preconditions:**
 - Gateway built; `vcan0` up; PDU router plugin available
+- `BOAT_CAN_INTERFACES=vcan0 BOAT_NODE_PLUGINS=./build/release/src/plugins/pdu_router/pdu_router.so ./build/release/src/gateway/grpc_gateway/boat_gateway`
 
 **TestSteps:**
 1. Start the gateway with `BOAT_NODE_TICK_US=100` and a cyclic PDU route (cycle 10 ms)
@@ -151,9 +176,11 @@ driver selection, plugin loading, tick configuration, and shutdown.
 - Cyclic frames appear at the configured cycle time within tick resolution
 - When both variables are set, `BOAT_NODE_TICK_US` takes precedence
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+Gateway behaves correct OK 
+PDU plugin calculates schedule time from set ticks, therefore the cycletime
 
 ---
 
@@ -172,7 +199,7 @@ driver selection, plugin loading, tick configuration, and shutdown.
 - Gateway shuts down cleanly (plugins unloaded, no crash, exit code 0 or documented signal exit)
 - Restart succeeds — no leaked sockets ("address already in use") or stale lock files
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -191,6 +218,10 @@ driver selection, plugin loading, tick configuration, and shutdown.
 **Expected:**
 - A clear error naming the missing interface (not a crash or silent success)
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+[Gateway] Failed to open CAN interface 'vcan99' (check interface name / permissions)
+
+
+
