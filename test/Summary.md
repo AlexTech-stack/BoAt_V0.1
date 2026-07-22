@@ -53,12 +53,12 @@
 | Devices | TC_Devices_012_cli_surface | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
 | Devices | TC_Devices_013_virtual_generator | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
 | Devices | TC_Devices_014_environment_devices_block | NOT_TESTED | Not integrated expected in v0.3.x-alpha |
-| Ethernet | TC_Ethernet_001_send_frame_cli | NOT_TESTED | |
-| Ethernet | TC_Ethernet_002_subscribe | NOT_TESTED | |
-| Ethernet | TC_Ethernet_003_mixed_subscribe_can_and_eth | NOT_TESTED | |
-| Ethernet | TC_Ethernet_004_physical_nic_requires_raw_prefix_and_cap | NOT_TESTED | |
+| Ethernet | TC_Ethernet_001_send_frame_cli | OK | |
+| Ethernet | TC_Ethernet_002_subscribe | OK | |
+| Ethernet | TC_Ethernet_003_mixed_subscribe_can_and_eth | OK | |
+| Ethernet | TC_Ethernet_004_physical_nic_requires_raw_prefix_and_cap | OK | |
 | Ethernet | TC_Ethernet_005_self_sent_flag | NOT_TESTED | |
-| Ethernet | TC_Ethernet_006_tcp_send_unimplemented | NOT_TESTED | |
+| Ethernet | TC_Ethernet_006_tcp_send_unimplemented | OK | |
 | Gateway | TC_Gateway_001_start_with_vcan | NOT_TESTED | |
 | Gateway | TC_Gateway_002_start_with_multiple_interfaces | NOT_TESTED | |
 | Gateway | TC_Gateway_003_driver_selection_physical_vs_virtual | NOT_TESTED | |
