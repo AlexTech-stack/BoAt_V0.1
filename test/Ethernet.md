@@ -1,10 +1,15 @@
 # TestSet: Ethernet
 
-System-level tests for Ethernet frame handling: virtual (veth) and physical (raw:)
+System-level tests for Ethernet frame handling: virtual (raw:veth) and physical (raw:)
 interfaces, send/subscribe, and capability requirements.
 
-Common precondition: gateway running with `BOAT_ETH_INTERFACES=veth0` where a veth
-pair `veth0`/`veth1` exists and is up (unless stated otherwise).
+For sudo less raw socket access:
+`sudo setcap cap_net_raw+ep build/release/src/gateway/grpc_gateway/boat_gateway`
+
+Common precondition: gateway running with `BOAT_ETH_INTERFACES=raw:veth0` where a veth
+pair `veth0`/`veth1` exists and is up (unless stated otherwise):
+
+`BOAT_ETH_INTERFACES=raw:veth0 ./build/release/src/gateway/grpc_gateway/boat_gateway`
 
 ---
 
@@ -22,9 +27,16 @@ pair `veth0`/`veth1` exists and is up (unless stated otherwise).
 - CLI reports success
 - `tcpdump` on the peer interface shows the frame with EtherType 0x0800 and the payload
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+boat frame send --bus-type ethernet --ethertype 0x0800 --dst-ip 10.0.0.1 --data AABB
+Frame sent: bus_type=ethernet iface=veth0
+
+<br>IP10 (invalid)</br>
+0x0000:  aabb 0000 0000 0000 0000 0000 0000 0000
+<br>0x0010:  0000 0000 0000 0000 0000 0000 0000 0000</br>
+0x0020:  0000 0000 0000 0000 0000 0000 0000
 
 ---
 
@@ -42,9 +54,11 @@ pair `veth0`/`veth1` exists and is up (unless stated otherwise).
 **Expected:**
 - The subscriber prints the frame with correct src/dst MAC, EtherType, and payload
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
+
 
 **Result:**
+Triggered Replay via `sudo tcpreplay -i veth0 PingTest_120120120_0_2.pcap`
 
 ---
 
@@ -53,7 +67,7 @@ pair `veth0`/`veth1` exists and is up (unless stated otherwise).
 **TestSets:** [Ethernet], [CAN], [CLI]
 
 **Preconditions:**
-- Gateway running with both `BOAT_CAN_INTERFACES=vcan0` and `BOAT_ETH_INTERFACES=veth0`
+- Gateway running with both `BOAT_CAN_INTERFACES=vcan0` and `BOAT_ETH_INTERFACES=raw:veth0`
 - `boat frame subscribe --bus-types can,ethernet` running
 
 **TestSteps:**
@@ -63,9 +77,17 @@ pair `veth0`/`veth1` exists and is up (unless stated otherwise).
 **Expected:**
 - The single subscriber stream shows both frames, each tagged with its bus type
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+<br>[CAN] vcan0  can_id=0x100 dlc=1 [1B]  01</br>
+<br>[ETHERNET] veth0  eth=0x0800 [2B]  aabb</br>
+<br>[CAN] vcan0  can_id=0x100 dlc=1 [1B]  01</br>
+<br>[ETHERNET] veth0  eth=0x0800 [2B]  aabb</br>
+<br>[CAN] vcan0  can_id=0x100 dlc=1 [1B]  01</br>
+<br>[ETHERNET] veth0  eth=0x0800 [2B]  aabb</br>
+<br>[CAN] vcan0  can_id=0x100 dlc=1 [1B]  01</br>
+
 
 ---
 
@@ -75,6 +97,7 @@ pair `veth0`/`veth1` exists and is up (unless stated otherwise).
 
 **Preconditions:**
 - A physical NIC `eth0` present; gateway binary WITHOUT `cap_net_raw`
+- If already done remove via: `sudo setcap -r build/release/src/gateway/grpc_gateway/boat_gateway`
 
 **TestSteps:**
 1. Start the gateway with `BOAT_ETH_INTERFACES=raw:eth0` (no setcap applied)
@@ -85,9 +108,20 @@ pair `veth0`/`veth1` exists and is up (unless stated otherwise).
   not a silent failure
 - Step 2: gateway starts and registers `eth0`
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+eth0 was: enx28107b9f2017
+
+1.
+BOAT_CAN_INTERFACES=vcan0 BOAT_ETH_INTERFACES=raw:enx28107b9f2017 ./build/release/src/gateway/grpc_gateway/boat_gateway
+<br>[RawSocket] socket() failed for enx28107b9f2017: Operation not permitted</br>
+[Gateway] Failed to open raw Ethernet interface 'enx28107b9f2017' (check permissions / interface name)
+
+2.
+BOAT_ETH_INTERFACES=raw:veth0 ./build/release/src/gateway/grpc_gateway/boat_gateway
+[Gateway] Registered raw Ethernet interface 'veth0'
 
 ---
 
@@ -121,11 +155,13 @@ pair `veth0`/`veth1` exists and is up (unless stated otherwise).
 **TestSteps:**
 1. Attempt a raw frame send with bus type TCP via the gRPC `FrameService.SendFrame`
    (e.g. from the Python SDK)
+   triggered via: ` python3 test/TestCases/TC_Ethernet_006_tcp_send_unimplemented.py --address localhost:50051`
 
 **Expected:**
 - The call returns gRPC status `UNIMPLEMENTED` — TCP is driven through the TCP
   plugin's connection API, not raw frame send
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+UNIMPLEMENTED: TCP is connection-oriented; use the TCP plugin, not FrameService.SendFrame
