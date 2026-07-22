@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Date** | 20.07.2026 |
+| **Date** | 20.07.2026, 22.07.2026 |
 | **Tester Name** | Alexander Günther |
 | **TestVersion** | v0.1.0 |
 | **SW** | v0.1.3-alpha |
@@ -59,15 +59,15 @@
 | Ethernet | TC_Ethernet_004_physical_nic_requires_raw_prefix_and_cap | OK | |
 | Ethernet | TC_Ethernet_005_self_sent_flag | NOT_TESTED | |
 | Ethernet | TC_Ethernet_006_tcp_send_unimplemented | OK | |
-| Gateway | TC_Gateway_001_start_with_vcan | NOT_TESTED | |
-| Gateway | TC_Gateway_002_start_with_multiple_interfaces | NOT_TESTED | |
-| Gateway | TC_Gateway_003_driver_selection_physical_vs_virtual | NOT_TESTED | |
-| Gateway | TC_Gateway_004_start_with_ethernet_interface | NOT_TESTED | |
-| Gateway | TC_Gateway_005_node_plugin_loading_with_json_config | NOT_TESTED | |
+| Gateway | TC_Gateway_001_start_with_vcan | OK | |
+| Gateway | TC_Gateway_002_start_with_multiple_interfaces | OK | |
+| Gateway | TC_Gateway_003_driver_selection_physical_vs_virtual | OK | |
+| Gateway | TC_Gateway_004_start_with_ethernet_interface | OK | |
+| Gateway | TC_Gateway_005_node_plugin_loading_with_json_config | NOK | `boat plugin list` shows no plugins |
 | Gateway | TC_Gateway_006_v7_plugin_rejected | NOT_TESTED | |
-| Gateway | TC_Gateway_007_tick_interval_configuration | NOT_TESTED | |
-| Gateway | TC_Gateway_008_graceful_shutdown | NOT_TESTED | |
-| Gateway | TC_Gateway_009_missing_interface_error | NOT_TESTED | |
+| Gateway | TC_Gateway_007_tick_interval_configuration | OK | |
+| Gateway | TC_Gateway_008_graceful_shutdown | OK | |
+| Gateway | TC_Gateway_009_missing_interface_error | OK | |
 | PDU | TC_PDU_001_route_and_send | NOT_TESTED | |
 | PDU | TC_PDU_002_cyclic_transmission_schedule | NOT_TESTED | |
 | PDU | TC_PDU_003_remove_route_stops_transmission | NOT_TESTED | |
