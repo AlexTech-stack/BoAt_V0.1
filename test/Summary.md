@@ -27,11 +27,11 @@
 | CAN | TC_CAN_008_list_ifaces | OK | |
 | CAN | TC_CAN_009_deprecated_wrapper_compat | INCONCLUSIVE | TC has to be removed |
 | CAN | TC_CAN_010_high_rate_burst | OK | |
-| CanTp | TC_CanTp_001_configure_session | NOT_TESTED | |
-| CanTp | TC_CanTp_002_single_frame_send | NOT_TESTED | |
-| CanTp | TC_CanTp_003_multi_frame_segmentation | NOT_TESTED | |
-| CanTp | TC_CanTp_004_always_on_reception | NOT_TESTED | |
-| CanTp | TC_CanTp_005_send_without_configuration | NOT_TESTED | |
+| CanTp | TC_CanTp_001_configure_session | NOK | CAN_TP Plugin shifted to v0.2.x-alpha |
+| CanTp | TC_CanTp_002_single_frame_send | NOK | CAN_TP Plugin shifted to v0.2.x-alpha |
+| CanTp | TC_CanTp_003_multi_frame_segmentation | NOK | CAN_TP Plugin shifted to v0.2.x-alpha |
+| CanTp | TC_CanTp_004_always_on_reception | NOK | CAN_TP Plugin shifted to v0.2.x-alpha |
+| CanTp | TC_CanTp_005_send_without_configuration | NOK | CAN_TP Plugin shifted to v0.2.x-alpha |
 | CLI | TC_CLI_001_help_all_subcommands | NOK | No help description for sim, scenario, plugin |
 | CLI | TC_CLI_002_host_flag | OK | done with gateway at 0.0.0.0:50061 |
 | CLI | TC_CLI_003_json_mode | OK | |
