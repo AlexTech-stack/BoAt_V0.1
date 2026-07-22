@@ -17,13 +17,13 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 
 **TestSteps:**
 1. `boat pdu route --id 0x100 --transport can --iface vcan0`
-2. `boat pdu send` a payload for PDU 0x100
+2. `boat pdu send --id 0x100 --data 11223344`
 3. `boat pdu list-routes`
 
 **Expected:**
 - The PDU is emitted on `vcan0` as a CAN frame; the route appears in `list-routes`
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -44,7 +44,7 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 - The PDU's frame appears every ~100 ms (within tick resolution), continuously,
   without any simulation running (the always-on node tick drives it)
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -58,13 +58,13 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 - A cyclic route active (TC_PDU_002)
 
 **TestSteps:**
-1. `boat pdu remove-route` for PDU 0x100
+1. `boat pdu remove-route --id 0x100`
 2. Observe `candump vcan0` for 2 s; run `boat pdu list-routes`
 
 **Expected:**
 - Cyclic transmission stops; route no longer listed
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -76,6 +76,8 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 
 **Preconditions:**
 - Cyclic routes for PDUs 0x100 and 0x200 configured
+- `boat pdu route --id 0x100 --transport can --iface vcan0 --send-type cyclic --cycle-ms 100`
+- `boat pdu route --id 0x200 --transport can --iface vcan0 --send-type cyclic --cycle-ms 100`
 
 **TestSteps:**
 1. `boat pdu group --id 1 --name "Safety" --pdu 0x100 --pdu 0x200 --disabled`
@@ -86,9 +88,39 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 - While the group is disabled neither PDU transmits; after enable both resume
 - `list-groups` shows the group with its members and current state
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+`boat pdu route --id 0x100 --transport can --iface vcan0 --send-type cyclic --cycle-ms 100`
+| pdu_id     | iface | transport | schedule             | ok   |
+|---|---|---|---|---|
+| 0x00000100 | vcan0 | CAN       | cyclic(100ms/0ms/0x) | True |
+
+`boat pdu route --id 0x200 --transport can --iface vcan0 --send-type cyclic --cycle-ms 100`
+| pdu_id     | iface | transport | schedule             | ok   |
+|---|---|---|---|---|
+| 0x00000200 | vcan0 | CAN       | cyclic(100ms/0ms/0x) | True |
+
+`boat pdu group --id 1 --name "Safety" --pdu 0x100 --pdu 0x200 --disabled`
+| group_id | name   | pdu_ids                      | enabled | ok   |
+|---|---|---|---|---|
+| 0x1      | Safety | ['0x00000100', '0x00000200'] | False   | True |
+
+`boat pdu enable-group --id 1`
+| group_id | ok   |
+|---|---|
+| 0x1      | True |
+
+`boat pdu list-groups`
+| group_id | name   | pdu_ids                | enabled |
+|---|---|---|---|
+| 0x1      | Safety | 0x00000100, 0x00000200 | yes     |
+
+`boat pdu disable-group --id 1`
+| group_id | ok   |
+|---|---|
+| 0x1      | True |
 
 ---
 
@@ -100,12 +132,12 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 - A cyclic route active
 
 **TestSteps:**
-1. `boat pdu subscribe` in a second shell
+1. `boat pdu subscribe --id 0x100` in a second shell
 
 **Expected:**
 - Routed PDUs stream to the subscriber with PDU id and payload
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -150,10 +182,10 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 - List shows available databases; show renders messages/signals; signal-routes
   resolves the routing of the named signal
 
-**Verdict:** NOT_TESTED
+**Verdict:** NOK
 
 **Result:**
-
+- Nothing works
 ---
 
 ### TC_PDU_008_grpc_delegation_to_plugin
@@ -170,9 +202,11 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 - A clear error indicating the PDU router plugin is not loaded (gRPC PDU calls are
   delegated to the plugin) — not a crash, not an empty success
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
+
+RPC error [NOT_FOUND]: PduRouter plugin not loaded
 
 ---
 
@@ -191,10 +225,10 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 - The frame is dispatched to the pdu_router plugin (not written to a wire directly)
   and the routed result appears on the target bus
 
-**Verdict:** NOT_TESTED
+**Verdict:** NOK
 
 **Result:**
-
+Doesnt work at all
 ---
 
 ### TC_PDU_010_e2e_crc_protection
@@ -215,3 +249,4 @@ Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
 **Verdict:** NOT_TESTED
 
 **Result:**
+Not implemented
