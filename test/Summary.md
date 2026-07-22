@@ -68,16 +68,16 @@
 | Gateway | TC_Gateway_007_tick_interval_configuration | OK | |
 | Gateway | TC_Gateway_008_graceful_shutdown | OK | |
 | Gateway | TC_Gateway_009_missing_interface_error | OK | |
-| PDU | TC_PDU_001_route_and_send | NOT_TESTED | |
-| PDU | TC_PDU_002_cyclic_transmission_schedule | NOT_TESTED | |
-| PDU | TC_PDU_003_remove_route_stops_transmission | NOT_TESTED | |
-| PDU | TC_PDU_004_ipdu_group_enable_disable | NOT_TESTED | |
-| PDU | TC_PDU_005_subscribe | NOT_TESTED | |
+| PDU | TC_PDU_001_route_and_send | OK | |
+| PDU | TC_PDU_002_cyclic_transmission_schedule | OK | |
+| PDU | TC_PDU_003_remove_route_stops_transmission | OK | |
+| PDU | TC_PDU_004_ipdu_group_enable_disable | OK | |
+| PDU | TC_PDU_005_subscribe | OK | |
 | PDU | TC_PDU_006_signal_packing_from_database | NOT_TESTED | |
-| PDU | TC_PDU_007_db_inspection_cli | NOT_TESTED | |
-| PDU | TC_PDU_008_grpc_delegation_to_plugin | NOT_TESTED | |
-| PDU | TC_PDU_009_frame_send_pdu_dispatch | NOT_TESTED | |
-| PDU | TC_PDU_010_e2e_crc_protection | NOT_TESTED | |
+| PDU | TC_PDU_007_db_inspection_cli | NOK |  |
+| PDU | TC_PDU_008_grpc_delegation_to_plugin | OK | |
+| PDU | TC_PDU_009_frame_send_pdu_dispatch | NOK | |
+| PDU | TC_PDU_010_e2e_crc_protection | NOT_TESTED | no json db with e2e messages |
 | Plugins | TC_Plugins_001_register_list_info_unload | NOT_TESTED | |
 | Plugins | TC_Plugins_002_json_config_applied | NOT_TESTED | |
 | Plugins | TC_Plugins_003_declared_buses_filtering | NOT_TESTED | |
