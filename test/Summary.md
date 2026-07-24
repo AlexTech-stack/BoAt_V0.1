@@ -85,14 +85,14 @@
 | Plugins | TC_Plugins_005_dual_manager_independence | NOT_TESTED | |
 | Plugins | TC_Plugins_006_replayed_frames_reach_plugins | NOT_TESTED | |
 | Plugins | TC_Plugins_007_nonexistent_so_error | NOT_TESTED | |
-| Recording | TC_Recording_001_cli_record_pcapng_mixed | NOT_TESTED | |
-| Recording | TC_Recording_002_cli_record_asc | NOT_TESTED | |
-| Recording | TC_Recording_003_cli_record_blf | NOT_TESTED | |
-| Recording | TC_Recording_004_cli_record_legacy_pcap_two_files | NOT_TESTED | |
-| Recording | TC_Recording_005_ui_session_lifecycle | NOT_TESTED | |
-| Recording | TC_Recording_006_ui_format_validation | NOT_TESTED | |
-| Recording | TC_Recording_007_signals_sidecar_jsonl | NOT_TESTED | |
-| Recording | TC_Recording_008_record_replay_roundtrip | NOT_TESTED | |
+| Recording | TC_Recording_001_cli_record_pcapng_mixed | OK | |
+| Recording | TC_Recording_002_cli_record_asc | OK | |
+| Recording | TC_Recording_003_cli_record_blf | OK | |
+| Recording | TC_Recording_004_cli_record_legacy_pcap_two_files | OK | |
+| Recording | TC_Recording_005_ui_session_lifecycle | NOK | CAN buses not selectable in webui, CAN not recorded. (NOK); trace file is stored in output dir on the testcomputer, no possiblity to download via webui (INCONCLUSIVE) |
+| Recording | TC_Recording_006_ui_format_validation | OK | |
+| Recording | TC_Recording_007_signals_sidecar_jsonl | OK | |
+| Recording | TC_Recording_008_record_replay_roundtrip | OK | |
 | Recording | TC_Recording_009_asc_blf_without_python_can | NOT_TESTED | |
 | Replay | TC_Replay_001_direct_can_replay_blf | NOT_TESTED | |
 | Replay | TC_Replay_002_direct_channel_mapping | NOT_TESTED | |
