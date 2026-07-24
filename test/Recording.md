@@ -4,7 +4,7 @@ System-level tests for trace recording via the CLI (`boat trace start/stop/statu
 and the Recorder web UI (port 8083), across all supported output formats.
 
 Common precondition: gateway running with `BOAT_CAN_INTERFACES=vcan0` and
-`BOAT_ETH_INTERFACES=veth0`; Recorder UI running (`python3 ui/recorder.py`);
+`BOAT_ETH_INTERFACES=raw:veth0`; Recorder UI running (`python3 ui/recorder.py`);
 a traffic generator available (e.g. `cansend` in a loop or a running simulation).
 
 ---
@@ -18,15 +18,15 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 
 **TestSteps:**
 1. `boat trace start --format pcapng --buses vcan0 --eth veth0`
-2. Generate CAN traffic (`cansend vcan0 123#AABB` × 20) and Ethernet traffic
-3. `boat trace stop`; locate the produced `.pcapng`
+2. Generate CAN traffic (`cansend vcan0 123#AABB` × 20) and Ethernet traffic via `sudo tcpreplay -i veth0 PingTest_120120120_0_2.pcap` 
+3. `boat trace stop`; locate the produced `.pcapng` (default: ./traces)
 
 **Expected:**
 - One `.pcapng` file containing both CAN and Ethernet frames on one timeline
   (two interface blocks); frame counts match the generated traffic
 - File opens in Wireshark with correctly decoded CAN IDs
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -40,13 +40,15 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 - `python-can` installed
 
 **TestSteps:**
-1. `boat trace start --format asc --buses vcan0`; generate 20 CAN frames; stop
+1. `boat trace start --format asc --buses vcan0`
+2. generate 20 CAN frames via `cansend vcan0 123#AABB`
+3. `boat trace stop`
 
 **Expected:**
 - A valid `.asc` file readable by python-can/Vector tooling with all 20 frames,
   correct IDs, channels, and timestamps
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -60,13 +62,14 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 - `python-can` installed
 
 **TestSteps:**
-1. `boat trace start --format blf --buses vcan0`; generate frames incl. one CAN FD
-   frame; stop
+1. `boat trace start --format blf --buses vcan0`
+2. generate CAN and CAN FD messages `cansend vcan0 123#AABB` , `cansend vcan0 123##3AABBCCDD`, `cansend vcan0 123##2AABBCCDD`, `cansend vcan0 123##1AABBCCDD`
+3. `boat trace stop`
 
 **Expected:**
 - A valid `.blf` with all frames; the FD frame retains FDF/BRS flags
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -80,14 +83,15 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 - Common preconditions of this TestSet (see top of file)
 
 **TestSteps:**
-1. `boat trace start --format pcap --buses vcan0 --eth veth0`; generate CAN and
-   Ethernet traffic; stop
+1. `boat trace start --format pcap --buses vcan0 --eth veth0`;
+2. Generate CAN traffic (`cansend vcan0 123#AABB` × 20) and Ethernet traffic via `sudo tcpreplay -i veth0 PingTest_120120120_0_2.pcap`
+3. `boat trace stop`
 
 **Expected:**
 - Two files are produced (`*_can.pcap` with DLT_CAN_SOCKETCAN, `*_eth.pcap` with
   DLT_EN10MB) — classic pcap cannot mix link types; both open in Wireshark
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -111,9 +115,13 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 - After stop it moves to history with file name + size; the downloaded file contains
   the recorded frames
 
-**Verdict:** NOT_TESTED
+**Verdict:** NOK
 
 **Result:**
+- CAN buses not selectable in webui, CAN not recorded. (NOK)
+- ETH is selectable and recorded as expected. (OK)
+- trace file is stored in output dir on the testcomputer, no possiblity to download via webui (INCONCLUSIVE)
+ 
 
 ---
 
@@ -125,7 +133,7 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 - Common preconditions of this TestSet (see top of file)
 
 **TestSteps:**
-1. POST `/api/sessions` with `{"format":"xyz"}` (e.g. via curl)
+1. POST `/api/sessions` with `{"format":"xyz"}` (e.g. via curl `curl -X POST http://localhost:8083/api/sessions -H "Content-Type: application/json" -d '{"format":"xyz"}`)
 2. In the UI, select ASC format and observe the Ethernet interface checkboxes
 
 **Expected:**
@@ -133,7 +141,7 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 - Step 2: Ethernet checkboxes are disabled for CAN-only formats (ASC/BLF), enabled
   for PCAP/PCAPNG
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -147,13 +155,15 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 - A simulation or node publishing BoAt bus signals
 
 **TestSteps:**
-1. Start a recording with "Include BoAt bus signals" enabled; let signals flow; stop
+1. Start a recording with "Include BoAt bus signals" enabled;
+2. let signals flow, for example, via `python3 TestNode_Signal_publisher.py`;
+3. stop recording
 
 **Expected:**
 - A `_bus.jsonl` sidecar exists next to the trace, one JSON object per signal with
   timestamp, name, type, value
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
@@ -170,13 +180,13 @@ a traffic generator available (e.g. `cansend` in a loop or a running simulation)
 1. Record a known, scripted traffic pattern (20 CAN frames with incrementing IDs) to
    PCAPNG
 2. `boat replay import <recording>.pcapng --trace-id rt`
-3. `boat replay stream --trace rt --buses vcan1` while `candump vcan1` runs
+3. `boat replay stream --trace rt --buses vcan0` while `candump vcan0` runs
 
 **Expected:**
-- The replayed sequence on `vcan1` matches the originally generated sequence
+- The replayed sequence on `vcan0` matches the originally generated sequence
   frame-for-frame — full record → import → replay round trip
 
-**Verdict:** NOT_TESTED
+**Verdict:** OK
 
 **Result:**
 
